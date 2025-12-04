@@ -16,7 +16,7 @@ class AnnonceView{
             <label>Catégorie :</label>
             <select name='category'>";
                 foreach($categories as $c){
-                    echo "<option value='{$c['id']}'>{$c['name']}</option>";
+                    echo "<option value='{$c->getId()}'>{$c->getName()}</option>";
                 }
                 echo "
             </select><br><br>
@@ -54,10 +54,22 @@ class AnnonceView{
         foreach($photos as $p){
             echo "<img src='uploads/$p' width='200'><br>";
         }
+        if($annonce['status'] === 'available'){
+            $canBuy = isset($_SESSION['user_id']) && $_SESSION['user_id'] != $annonce['user_id'];
+            if($canBuy){
+                echo "<p><a href='index.php?action=buyForm&id={$annonce['id']}'>Acheter ce bien</a></p>";
+            }else if(!isset($_SESSION['user_id'])){
+                echo "<p><a href='index.php?action=loginForm'>Connectez-vous pour acheter</a></p>";
+            }else{
+                echo "<p>Vous êtes le vendeur de cette annonce.</p>";
+            }
+        }else{
+            echo "<p style='color:green;'>Annonce vendue</p>";
+        }
     }
 
     public function displayAnnoncesByCategory($category, $annonces){
-        echo "<h2>Catégorie: {$category['name']}</h2>";
+        echo "<h2>Catégorie: {$category->getName()}</h2>";
         foreach($annonces as $a){
             echo "<div style='border:1px solid #ccc; padding:10px; margin:5px'>";
             echo "<h3>{$a['title']}</h3>";
@@ -66,6 +78,33 @@ class AnnonceView{
             echo "</div>";
         }
     }
+
+    public function showBuyForm($annonce, $allowedDeliveryOptions = [], $errors = []){
+        echo "<h2>Acheter : " . htmlspecialchars($annonce['title']) . "</h2>";
+
+        if (!empty($errors)){
+            echo "<div style='color:red;'>";
+            foreach($errors as $e) echo "<p>".htmlspecialchars($e)."</p>";
+            echo "</div>";
+        }
+
+        echo "<p>" . nl2br(htmlspecialchars($annonce['description'])) . "</p>";
+        echo "<p>Prix : " . number_format($annonce['price'], 2) . " €</p>";
+
+        echo "<form method='POST' action='index.php?action=buy'>";
+        echo "<input type='hidden' name='annonce_id' value='".intval($annonce['id'])."'>";
+        echo "<label>Mode de livraison :</label>";
+        echo "<select name='delivery'>";
+        foreach($allowedDeliveryOptions as $opt){
+            $label = $opt === 'postal' ? 'Envoi postal' : 'Remise en main propre';
+            echo "<option value='".htmlspecialchars($opt)."'>".htmlspecialchars($label)."</option>";
+        }
+        echo "</select><br><br>";
+
+        echo "<button type='submit'>Confirmer l'achat</button>";
+        echo "</form>";
+    }
+
 
     public function displayError($msg){
         echo "<p style='color:red;'>$msg</p>";

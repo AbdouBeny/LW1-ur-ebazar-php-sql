@@ -1,7 +1,7 @@
 <?php
-require_once '../model/UserStorage.php';
-require_once '../model/User.php';
-require_once '../view/UserView.php';
+require_once 'model/UserStorage.php';
+require_once 'model/User.php';
+require_once 'view/UserView.php';
 
 
 class UserController{
@@ -11,6 +11,7 @@ class UserController{
     public function __construct(){
         $this->storage = new UserStorage();
         $this->view = new UserView();
+        if (session_status() == PHP_SESSION_NONE) session_start();
     }
 
     /**
@@ -18,6 +19,13 @@ class UserController{
      */
     public function registerForm(){
         $this->view->showRegisterForm();
+    }
+
+    /**
+     * afficher le formulaire de connexion
+     */
+    public function loginForm(){
+        $this->view->showLoginForm();
     }
 
     /**
@@ -49,7 +57,7 @@ class UserController{
 
         // si tout est ok, on passe à la creation de l'utilisateur
         $user = new User($email, $password);
-        $this->view->addUser($user);
+        $this->storage->addUser($user);
         $this->view->showMessage("inscription réussie ! vous pouvez maintenant vous connecter.");
     }
 
@@ -63,11 +71,11 @@ class UserController{
         $user = $this->storage->checkLogin($email, $password);
         if($user){
             // on lance une sesssion
-            session_start();
+            if (session_status() == PHP_SESSION_NONE) session_start();
             $_SESSION['user_id'] = $user->getId();
             $_SESSION['user_email'] = $user->getEmail();
             $_SESSION['user_role'] = $user->getRole();
-            $this->view->showMessage("connexion réussie ! bienvenue ." . $user->getEmail());
+            $this->view->showMessage("connexion réussie ! bienvenue ." . htmlspecialchars($user->getEmail()));
         } else{
             $this->view->showLoginForm(["identifiants incorrects"], $email);
         }
@@ -77,7 +85,6 @@ class UserController{
      * déconnexion
      */
     public function logout(){
-        session_start();
         session_destroy();
         $this->view->showMessage("vous etes déconnecté.");
     }

@@ -61,4 +61,99 @@ class AnnonceStorage {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * recuerer les n dernieres annonces
+     */
+    public function getLastAnnonces($limit=4){
+        $sql = "SELECT * FROM annonces
+                where status = 'available'
+                order by created_at desc
+                limit :limit";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(":limit", $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * recuperer la premiere photo
+     */
+    public function getFirstPhoto($annonceId){
+        $sql = "SELECT filename from photos where annonce_id = :id order by id asc limit 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(":id", $annonceId);
+        $stmt->execute();
+        return $stmt->fetchColumn();
+    }
+
+    /**
+     * recuperer une annonce
+     */
+    public function getAnnonce($id){
+        $sql = "SELECT * FROM annonces WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(":id", $id);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * marquer une annonce comme vendue et enregistrer l'acheteur
+     */
+    public function purchaseAnnonce($annonceId, $buyerId, $delivery){
+        try{
+            $this->pdo->beginTransaction();
+
+            $sql = "UPDATE annonces
+                    SET status = 'sold',
+                        buyer_id = :buyer,
+                        delivery = :delivery,
+                        sold_at = NOW()
+                    WHERE id = :id AND status = 'available'";
+
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->bindValue(':buyer', $buyerId, PDO::PARAM_INT);
+            $stmt->bindValue(':delivery', $delivery);
+            $stmt->bindValue(':id', $annonceId, PDO::PARAM_INT);
+            $stmt->execute();
+
+            if ($stmt->rowCount() !== 1){
+                $this->pdo->rollBack();
+                return false;
+            }
+
+            $this->pdo->commit();
+            return true;
+
+        }catch(Exception $e){
+            if ($this->pdo->inTransaction()){
+                $this->pdo->rollBack();
+            }
+            return false;
+        }
+    }
+
+    /**
+     * lister les annonces vendues par un utilisateur (vendeur)
+     */
+    public function listSoldByUser($userId){
+        $sql = "SELECT * from annonces where user_id = :uid AND status = 'sold' order by sold_at desc";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':uid', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * lister les annonces achetées par un acheteur
+     */
+    public function listBoughtByUser($userId){
+        $sql = "SELECT * from annonces where buyer_id = :uid order by sold_at desc";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':uid', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+    
 }

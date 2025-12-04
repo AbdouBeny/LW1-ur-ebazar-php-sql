@@ -19,7 +19,7 @@ class UserStorage{
         $sql = "INSERT INTO users (email, password, role) values (:email, :password, :role)";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindValue(':email', $user->getEmail());
-        $stmt->bindValue('password', hash('sha256', $user->getPassword()));
+        $stmt->bindValue(':password', hash('sha256', $user->getPassword()));
         $stmt->bindValue(':role', $user->getRole());
         return $stmt->execute();
     }
@@ -51,7 +51,7 @@ class UserStorage{
      * @return bool
      */
     public function emailExists($email){
-        $sql = "SELECT COUNT(*) FROM USER WHERE email = :email";
+        $sql = "SELECT COUNT(*) FROM users WHERE email = :email";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindValue(':email', $email);
         $stmt->execute();

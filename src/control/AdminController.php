@@ -1,6 +1,6 @@
 <?php
-require_once '../model/CategoryStorage.php';
-require_once '../view/AdminView.php';
+require_once 'model/CategoryStorage.php';
+require_once 'view/AdminView.php';
 
 class AdminController{
     private $categoryStorage;

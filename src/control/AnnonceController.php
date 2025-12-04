@@ -1,8 +1,8 @@
 <?php
-require_once '../model/Annonce.php';
-require_once '../model/AnnonceStorage.php';
-require_once '../model/CategoryStorage.php';
-require_once '../view/AnnonceView.php';
+require_once 'model/Annonce.php';
+require_once 'model/AnnonceStorage.php';
+require_once 'model/CategoryStorage.php';
+require_once 'view/AnnonceView.php';
 
 class AnnonceController{
     private $storage;
@@ -27,11 +27,10 @@ class AnnonceController{
      * traitement du formulaire
      */
     public function createAnnonce(){
-        if(!isset($_SESSION['user'])){
+        if(!isset($_SESSION['user_id'])){
             header("Location: index.php?action=login");
             exit;
         }
-        $user = $_SESSION['user'];
 
         $errors = [];
         if (empty($_POST['title']) || strlen($_POST['title']) < 5 || strlen($_POST['title']) > 30)
@@ -52,7 +51,7 @@ class AnnonceController{
         }
 
         $annonce = new Annonce(
-            $user['id'],
+            $_SESSION['user_id'],
             $_POST['category'],
             $_POST['title'],
             $_POST['description'],
@@ -63,7 +62,7 @@ class AnnonceController{
 
         // upload des photos 
         if(!empty($_FILES["photos"]["name"][0])){
-            $count = min(count($_FILES['photos']['count']), 5);
+            $count = min(count($_FILES['photos']['name']), 5);
             for($i = 0; $i < $count; $i++){
                 if($_FILES['photos']['error'][$i] === UPLOAD_ERR_OK){
                     if($_FILES['photos']['size'][$i] <= 200 * 1024){
@@ -84,7 +83,7 @@ class AnnonceController{
         $annonce = $this->storage->getAnnonce($id);
         $photos = $this->storage->getPhotos($id);
 
-        if(!annonce){
+        if(!$annonce){
             $this->view->displayError("Annonce introuvable.");
             return;
         }
@@ -99,5 +98,85 @@ class AnnonceController{
         $category = $this->categoryStorage->getById($catId);
         $this->view->displayAnnoncesByCategory($category, $annonces);
     }
-    
+
+    /**
+     * affichier le formularier d'achat pour une annonce
+     */
+    public function showBuyForm($id){
+        if(!$id){
+            $this->view->displayError("ID manquant.");
+            return;
+        }
+        $annonce = $this->storage->getAnnonce($id);
+        if(!$annonce){
+            $this->view->displayError('annonce introuvable.');
+            return;
+        }
+        if($annonce['status'] !== 'available'){
+            $this->view->displayError("cette annonce n'est plus disponible.");
+            return;
+        }
+        if(!isset($_SESSION['user_id'])){
+            header("Location: index.php?action=loginForm");
+            exit;
+        }
+        if($annonce['user_id'] == $_SESSION['user_id']){
+            $this->view->displayError("Vous ne pouvez pas acheter votre propre annonce.");
+            return;
+        }
+        
+        $allowed = [];
+        $allowed[] = $annonce['delivery'];
+        $this->view->showBuyForm($annonce, $allowed);
+    }
+
+    /**
+     * traitement de l'achat
+     */
+    public function buyAnnonce(){
+        if($_SERVER['REQUEST_METHOD'] !== 'POST'){
+            $this->view->displayError("requête invalide.");
+            return;
+        }
+
+        if(!isset($_SESSION['user_id'])){
+            header("Location: index.php?action=loginForm");
+            exit;
+        }
+        $annonceId = $_POST['annonce_id'] ?? null;
+        $delivery = $_POST['delivery'] ?? null;
+        $buyerId = $_SESSION['user_id'];
+
+        if(!$annonceId || !$delivery){
+            $this->view->displayError("données manquantes.");
+            return;
+        }
+        $annonce = $this->storage->getAnnonce($annonceId);
+        if(!$annonce){
+            $this->view->displayError("annonce introuvable.");
+            return;
+        }
+        if($annonce['status'] !== 'available'){
+            $this->view->displayError("annonce déjà vendue.");
+            return;
+        }
+        if($annonce['user_id'] == $buyerId){
+            $this->view->displayError("vous ne pouvez pas acheter votre propre annonce.");
+            return;
+        }
+        $accepted = [$annonce['delivery']];
+        if(!in_array($delivery, $accepted)){
+            $this->view->displayError("mode de livraison non autorisé.");
+            return;
+        }
+        $ok = $this->storage->purchaseAnnonce($annonceId, $buyerId, $delivery);
+
+        if(!$ok){
+            $this->view->displayError("impossible d'acheter l'annonce (déjà vendue ?).");
+            return;
+        }
+        header("Location: index.php?action=annonce&id={$annonceId}");
+        exit;
+
+    }
 }

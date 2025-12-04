@@ -18,9 +18,8 @@ class CategoryStorage {
         $stmt = $this->pdo->query($sql);
 
         $categories = [];
-        while($row = $stmt->fetch(PDO::FETCH_ADDOC)){
+        while($row = $stmt->fetch(PDO::FETCH_ASSOC)){
             $cat = new Category($row['name']);
-            $cat->setId($row['id']);
             $cat->setId($row['id']);
             $categories[] = $cat;
         }
@@ -57,5 +56,36 @@ class CategoryStorage {
         $stmt->bindValue(':name', $newName);
         $stmt->bindValue(':id', $id);
         return $stmt->execute();
+    }
+
+    /**
+     * recuperer les categories avec le nombre d'annonces dispo
+     */
+    public function getAllWithAnnonceCount(){
+        $sql = "SELECT c.*, COUNT(a.id) AS count
+                FROM categories c
+                LEFT JOIN annonces a on a.category_id = c.id
+                AND a.status = 'available'
+                group by c.id
+                order by c.name asc";
+        $stmt = $this->pdo->query($sql);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * recuperer une categorie avec son id 
+     */
+    public function getById($id){
+        $sql = "SELECT * FROM categories where id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(":id", $id);
+        $stmt->execute();
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+        if($data){
+            $category = new Category($data["name"]);
+            $category->setId($data['id']);
+            return $category;
+        }
+        return null;
     }
 }

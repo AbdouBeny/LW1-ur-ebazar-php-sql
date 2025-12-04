@@ -1,6 +1,13 @@
 <?php
 require_once 'control/UserController.php';
 require_once 'control/AdminController.php';
+require_once 'control/MainController.php';
+require_once 'control/AnnonceController.php';
+require_once 'view/MainView.php';
+require_once 'model/CategoryStorage.php';
+require_once 'model/AnnonceStorage.php';
+
+
 
 class Router{
 
@@ -9,6 +16,15 @@ class Router{
 
 
         switch($action){
+            case 'home':
+                $controller = new MainController(
+                    new MainView(),
+                    new CategoryStorage(),
+                    new AnnonceStorage()
+                );
+                $controller->home();
+                break;
+
             // inscription et connextion
             case 'registerForm':
                 $userController = new UserController();
@@ -62,6 +78,14 @@ class Router{
             case 'category':
                 $controller = new AnnonceController();
                 $controller->listByCategory($_GET['id']);
+                break;
+            case 'buyForm':
+                $controller = new AnnonceController();
+                $controller->showBuyForm($_GET['id'] ?? null);
+                break;
+            case 'buy':
+                $controller = new AnnonceController();
+                $controller->buyAnnonce();
                 break;
 
             default:

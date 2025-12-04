@@ -9,6 +9,8 @@ class Annonce{
     private $price;
     private $delivery;
     private $status;
+    private $buyerId;
+    private $soldAt;
 
     public function __construct($userId, $categoryId, $title, $description, $price, $delivery){
         $this->userId = $userId;
@@ -44,8 +46,20 @@ class Annonce{
     public function getStatus(){
         return $this->status;
     }
+    public function getBuyerId(){
+        return $this->buyerId;
+    }
+    public function getSoldAt(){
+        return $this->soldAt;
+    }
 
     public function setId($id){
         $this->id = $id;
+    }
+    public function setBuyerId($id){
+        $this->buyerId = $id;
+    }
+    public function setSoldAt($t){
+        $this->soldAt = $t;
     }
 }

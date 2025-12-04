@@ -43,3 +43,10 @@ INSERT INTO users (email, password, role) VALUES (
     SHA2('admin123', 256),
     'admin'
 );
+
+-- on ajoute des colonnes pour stocker l'acheteur et la date d'achat 
+ALTER TABLE annonces
+  ADD buyer_id INT NULL AFTER status,
+  ADD sold_at TIMESTAMP NULL AFTER buyer_id,
+  ADD CONSTRAINT fk_annonces_buyer FOREIGN KEY (buyer_id) REFERENCES users(id) ON DELETE SET NULL;
+
