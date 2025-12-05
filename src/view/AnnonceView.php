@@ -69,6 +69,10 @@ class AnnonceView{
     }
 
     public function displayAnnoncesByCategory($category, $annonces){
+        if(!empty($a['photo'])){
+            echo "<img src='uploads/{$a['photo']}' style='width:150px;height:100px;object-fit:cover;'><br>";
+        }
+
         echo "<h2>Catégorie: {$category->getName()}</h2>";
         foreach($annonces as $a){
             echo "<div style='border:1px solid #ccc; padding:10px; margin:5px'>";
@@ -78,6 +82,32 @@ class AnnonceView{
             echo "</div>";
         }
     }
+
+    public function displayAnnoncesByCategoryPaged($category, $annonces, $page, $totalPages, $catId){
+        echo "<h2>Catégorie : " . htmlspecialchars($category->getName()) . "</h2>";
+        foreach($annonces as $a){
+            echo "<div style='border:1px solid #ccc; padding:10px; margin:5px'>";
+            echo "<h3>" . htmlspecialchars($a['title']) . "</h3>";
+            echo "<p>" . htmlspecialchars($a['price']) . " €</p>";
+            echo "<a href='index.php?action=annonce&id={$a['id']}'>Voir</a>";
+            echo "</div>";
+        }
+
+        echo "<div style='margin-top:20px;'>";
+        if($page > 1){
+            $prev = $page - 1;
+            echo "<a href='index.php?action=category&id={$catId}&page={$prev}'>Précédent</a> ";
+        }
+
+        echo " Page {$page} / {$totalPages} ";
+
+        if($page < $totalPages){
+            $next = $page + 1;
+            echo "<a href='index.php?action=category&id={$catId}&page={$next}'>Suivant</a>";
+        }
+        echo "</div>";
+    }
+
 
     public function showBuyForm($annonce, $allowedDeliveryOptions = [], $errors = []){
         echo "<h2>Acheter : " . htmlspecialchars($annonce['title']) . "</h2>";
@@ -103,6 +133,60 @@ class AnnonceView{
 
         echo "<button type='submit'>Confirmer l'achat</button>";
         echo "</form>";
+    }
+
+    public function displayUserAccount($myAnnonces, $mySold, $myBought){
+        echo "<h2>Mon compte</h2>";
+
+        echo "<h3>Mes annonces</h3>";
+        if(empty($myAnnonces)) echo "<p>Aucune annonce déposée.</p>";
+        foreach($myAnnonces as $a){
+            $status = $a['status'] === 'available' ? "Disponible" : "Vendue";
+            echo "<div style='border:1px solid #ccc; padding:10px; margin:5px'>";
+            if(isset($a['photo'])){
+                echo "<img src='uploads/{$a['photo']}' width='120'><br>";
+            }
+
+            echo "<h4>{$a['title']} ({$status})</h4>";
+            echo "<p>Prix : {$a['price']} €</p>";
+            echo "<a href='index.php?action=annonce&id={$a['id']}'>Voir</a>";
+            if($a['status'] === 'available'){
+                echo " | <a href='index.php?action=deleteAnnonce&id={$a['id']}'>Supprimer</a>";
+            }
+            echo "</div>";
+        }
+
+        echo "<h3>Mes ventes</h3>";
+        if(empty($mySold)) echo "<p>Aucune vente.</p>";
+        foreach($mySold as $a){
+            echo "<div style='border:1px solid #ccc; padding:10px; margin:5px'>";
+            if(isset($a['photo'])){
+                echo "<img src='uploads/{$a['photo']}' width='120'><br>";
+            }
+
+            echo "<h4>{$a['title']}</h4>";
+            echo "<p>Prix : {$a['price']} €</p>";
+            echo "<p>Acheté par utilisateur ID : {$a['buyer_id']}</p>";
+            echo "<a href='index.php?action=annonce&id={$a['id']}'>Voir</a>";
+            echo "</div>";
+        }
+
+        echo "<h3>Mes achats</h3>";
+        if(empty($myBought)) echo "<p>Aucun achat.</p>";
+        foreach($myBought as $a){
+            echo "<div style='border:1px solid #ccc; padding:10px; margin:5px'>";
+            if(isset($a['photo'])){
+                echo "<img src='uploads/{$a['photo']}' width='120'><br>";
+            }
+
+            echo "<h4>{$a['title']}</h4>";
+            echo "<p>Prix : {$a['price']} €</p>";
+            echo "<form method='POST' action='index.php?action=confirmReception'>";
+            echo "<input type='hidden' name='annonce_id' value='{$a['id']}'>";
+            echo "<button type='submit'>J'ai reçu ce bien</button>";
+            echo "</form>";
+            echo "</div>";
+        }
     }
 
 

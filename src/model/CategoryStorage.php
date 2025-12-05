@@ -48,17 +48,6 @@ class CategoryStorage {
     }
 
     /**
-     * renommer une categorie
-     */
-    public function update($id, $newName){
-        $sql = "UPDATE categories SET name = :name where id = :id";
-        $stmt = $this->pdo->prepare($sql);
-        $stmt->bindValue(':name', $newName);
-        $stmt->bindValue(':id', $id);
-        return $stmt->execute();
-    }
-
-    /**
      * recuperer les categories avec le nombre d'annonces dispo
      */
     public function getAllWithAnnonceCount(){
@@ -88,4 +77,15 @@ class CategoryStorage {
         }
         return null;
     }
+
+    /**
+     * renommer une catégorie
+     */
+    public function rename($id, $name){
+        $stmt = $this->pdo->prepare("UPDATE categories SET name = :name WHERE id = :id");
+        $stmt->bindValue(":id", $id, PDO::PARAM_INT);
+        $stmt->bindValue(":name", $name);
+        return $stmt->execute();
+    }
+
 }

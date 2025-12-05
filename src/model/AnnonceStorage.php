@@ -63,18 +63,53 @@ class AnnonceStorage {
     }
 
     /**
-     * recuerer les n dernieres annonces
+     * lister les annonces par categorie (paginée)
      */
-    public function getLastAnnonces($limit=4){
+    public function listAvailableByCategoryPaged($categoryId, $limit, $offset){
         $sql = "SELECT * FROM annonces
-                where status = 'available'
-                order by created_at desc
-                limit :limit";
+                WHERE category_id = :cat AND status = 'available'
+                ORDER BY created_at DESC
+                LIMIT :limit OFFSET :offset";
+
         $stmt = $this->pdo->prepare($sql);
-        $stmt->bindValue(":limit", $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':cat', $categoryId, PDO::PARAM_INT);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * compter le nombre total d'annonces dans une catégorie
+     */
+    public function countInCategory($categoryId){
+        $sql = "SELECT COUNT(*) FROM annonces
+                WHERE category_id = :cat AND status = 'available'";
+
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':cat', $categoryId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return (int)$stmt->fetchColumn();
+    }
+
+
+    /**
+     * recuerer les n dernieres annonces
+     */
+    public function getLastAnnonces($limit = 4){
+        $sql = "SELECT a.*, 
+            (SELECT filename FROM photos WHERE annonce_id = a.id ORDER BY id ASC LIMIT 1) AS photo
+                FROM annonces a
+                WHERE a.status = 'available'
+                ORDER BY a.created_at DESC
+                LIMIT :limit";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
 
     /**
      * recuperer la premiere photo
@@ -156,4 +191,60 @@ class AnnonceStorage {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
+    /**
+     * recuperer toutes les annonces d'un utilisateur
+     */
+    public function listByUser($userId){
+        $sql = "SELECT * from annonces where user_id = :uid order by created_at desc";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':uid', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * confirmer la reception (on supprime l'annonce)
+     */
+    public function confirmReception($annonceId){
+        $sql = "DELETE FROM annonces WHERE id = :id AND status = 'sold'";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindValue(':id', $annonceId, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+
+    /**
+     * supprimer une annonce
+     */
+    public function deleteAnnonce($id){
+        try {
+            $sql = "SELECT filename FROM photos WHERE annonce_id = :id";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->bindValue(':id', $id);
+            $stmt->execute();
+            
+            $photos = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            foreach ($photos as $p){
+                $file = "uploads/" . $p;
+                if (file_exists($file)){
+                    unlink($file);
+                }
+            }
+            $sql = "DELETE FROM photos WHERE annonce_id = :id";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->bindValue(':id', $id);
+            $stmt->execute();
+
+            $sql = "DELETE FROM annonces WHERE id = :id";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->bindValue(':id', $id);
+
+            return $stmt->execute();
+
+        } catch(Exception $e){
+            return false;
+        }
+    }
+
+
 }

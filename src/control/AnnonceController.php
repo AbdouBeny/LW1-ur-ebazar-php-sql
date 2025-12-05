@@ -94,10 +94,33 @@ class AnnonceController{
      * lister par categorie
      */
     public function listByCategory($catId){
-        $annonces = $this->storage->listAvailableByCategory($catId);
         $category = $this->categoryStorage->getById($catId);
-        $this->view->displayAnnoncesByCategory($category, $annonces);
+        if (!$category){
+            $this->view->displayError("Catégorie introuvable.");
+            return;
+        }
+        $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+
+        $limit = 10;
+        $offset = ($page - 1) * $limit;
+
+        $annonces = $this->storage->listAvailableByCategoryPaged($catId, $limit, $offset);
+
+        $total = $this->storage->countInCategory($catId);
+        $totalPages = ceil($total / $limit);
+        foreach ($annonces as &$a){
+            $a['photo'] = $this->storage->getFirstPhoto($a['id']);
+        }
+
+        $this->view->displayAnnoncesByCategoryPaged(
+            $category,
+            $annonces,
+            $page,
+            $totalPages,
+            $catId
+        );
     }
+
 
     /**
      * affichier le formularier d'achat pour une annonce
@@ -179,4 +202,108 @@ class AnnonceController{
         exit;
 
     }
+
+    /**
+     * afficher le compte de l'utilisateur
+     */
+    public function myAccount(){
+        if(!isset($_SESSION['user_id'])){
+            header("Location: index.php?action=loginForm");
+            exit;
+        }
+
+        $userId = $_SESSION['user_id'];
+
+        $myAnnonces = $this->storage->listByUser($userId);
+        $mySold = $this->storage->listSoldByUser($userId);
+        $myBought = $this->storage->listBoughtByUser($userId);
+        foreach ($myAnnonces as &$a){
+            $a['photo'] = $this->storage->getFirstPhoto($a['id']);
+        }
+        foreach ($mySold as &$a){
+            $a['photo'] = $this->storage->getFirstPhoto($a['id']);
+        }
+        foreach ($myBought as &$a){
+            $a['photo'] = $this->storage->getFirstPhoto($a['id']);
+        }
+        $this->view->displayUserAccount($myAnnonces, $mySold, $myBought);
+    }
+    /**
+     * confirmer la reception 
+     */
+    public function confirmReception(){
+        if($_SERVER['REQUEST_METHOD'] !== 'POST'){
+            $this->view->displayError("requête invalide.");
+            return;
+        }
+        if(!isset($_SESSION['user_id'])){
+            header("Location: index.php?action=loginForm");
+            exit;
+        }
+        $annonceId = $_POST['annonce_id'] ?? null;
+        $userId = $_SESSION['user_id'];
+        if(!$annonceId){
+            $this->view->displayError("id manquant.");
+            return;
+        }
+        $annonce = $this->storage->getAnnonce($annonceId);
+        if(!$annonce){
+            $this->view->displayError("annonce introuvable.");
+            return;
+        }
+        if($annonce['buyer_id'] != $userId){
+            $this->view->displayError("vous n'êtes pas l'acheteur de cette annonce.");
+            return;
+        }
+        $ok = $this->storage->confirmReception($annonceId);
+
+        if(!$ok){
+            $this->view->displayError("impossible de confirmer la réception.");
+            return;
+        }
+
+        header("Location: index.php?action=myAccount");
+        exit;
+    }
+
+    /**
+     * supprimer une annonce 
+     */
+    public function deleteAnnonce($id){
+        if (!isset($_SESSION['user_id'])){
+            header("Location: index.php?action=loginForm");
+            exit;
+        }
+        if (!$id){
+            $this->view->displayError("iD manquant.");
+            return;
+        }
+
+        $annonce = $this->storage->getAnnonce($id);
+
+        if(!$annonce){
+            $this->view->displayError("annonce introuvable.");
+            return;
+        }
+        if ($annonce['user_id'] != $_SESSION['user_id']){
+            $this->view->displayError("vous ne pouvez pas supprimer une annonce qui ne vous appartient pas.");
+            return;
+        }
+        if ($annonce['status'] !== 'available'){
+            $this->view->displayError("vous ne pouvez pas supprimer une annonce déjà vendue.");
+            return;
+        }
+
+        $ok = $this->storage->deleteAnnonce($id);
+
+        if(!$ok){
+            $this->view->displayError("erreur lors de la suppression.");
+            return;
+        }
+
+        header("Location: index.php?action=myAccount");
+        exit;
+    }
+
+
 }

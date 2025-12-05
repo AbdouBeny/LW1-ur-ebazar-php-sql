@@ -43,4 +43,72 @@ class AdminController{
         $this->categoryStorage->add($cat);
         $this->view->showMessage("catégorie ajoutée.");
     }
+
+    /**
+     * supprimer un utilisateurs
+     */
+    public function deleteUser($userId){
+        if(!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin'){
+            die("accès refusé");
+        }
+        if(!$userId){
+            exit("id manquant");
+        }
+
+        $storage = new UserStorage();
+
+        if($storage->delete($userId)){
+            echo "utilisateur supprimé.<br>";
+            echo '<a href="?action=categoryList">Retour admin</a>';
+        }else{
+            echo "erreur suppression.";
+        }
+    }
+
+    /**
+     * supprimer une annonce
+     */
+    public function deleteAnnonce($id){
+        if(!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin'){
+            die("accès refusé");
+        }
+        if(!$id){
+            die("id annonce manquant");
+        }
+
+        $storage = new AnnonceStorage();
+
+        if($storage->deleteAnnonce($id)){
+            echo "annonce supprimée.<br>";
+            echo '<a href="?action=categoryList">Retour admin</a>';
+        }else{
+            echo "erreur suppression annonce.";
+        }
+    }
+
+    /**
+     * formulaire pour renommer une catégorie
+     */
+    public function renameCategoryForm($id){
+        $storage = new CategoryStorage();
+        $cat = $storage->getById($id);
+
+        include 'view/admin/renameCategory.php';
+    }
+
+    public function renameCategory(){
+        $id = $_POST['id'];
+        $name = $_POST['name'];
+
+        $storage = new CategoryStorage();
+
+        if ($storage->rename($id, $name)){
+            echo "Catégorie renommée.";
+        } else {
+            echo "Erreur.";
+        }
+    }
+
+
+
 }

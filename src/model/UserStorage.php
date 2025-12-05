@@ -34,7 +34,7 @@ class UserStorage{
         $sql = "SELECT * FROM users where email = :email AND password = :password";
         $stmt = $this->pdo->prepare($sql);
         $stmt->bindValue(':email', $email);
-        $stmt->bindValue('password', hash('sha256', $password));
+        $stmt->bindValue(':password', hash('sha256', $password));
         $stmt->execute();
         $data = $stmt->fetch(PDO::FETCH_ASSOC);
         if($data){
@@ -57,4 +57,15 @@ class UserStorage{
         $stmt->execute();
         return $stmt->fetchColumn() > 0;
     }
+
+    /**
+     * supprimer un utilisateur
+     * @param int $id
+     */
+    public function delete($id){
+        $stmt = $this->pdo->prepare("DELETE FROM users WHERE id = :id");
+        $stmt->bindValue(":id", $id, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
+
 }
