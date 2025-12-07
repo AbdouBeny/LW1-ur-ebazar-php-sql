@@ -1,65 +1,81 @@
 <?php
 
-class Annonce{
-    private $id;
-    private $userId;
-    private $categoryId;
-    private $title;
-    private $description;
-    private $price;
-    private $delivery;
-    private $status;
-    private $buyerId;
-    private $soldAt;
 
-    public function __construct($userId, $categoryId, $title, $description, $price, $delivery){
-        $this->userId = $userId;
-        $this->categoryId = $categoryId;
+class Annonce{
+    protected $title;
+    protected $description;
+    protected $price;
+    protected $categoryId;
+    protected $sellerEmail;
+    protected $photos; 
+    protected $deliveryModes;
+    protected $createdDate;
+    protected $sold = false;
+    
+    public function __construct($title, $description, $priceCentimes = 0, $categoryId, $sellerEmail, $deliveryModes = array(), $photos = array()) {
         $this->title = $title;
         $this->description = $description;
-        $this->price = $price;
-        $this->delivery = $delivery;
-        $this->status = "available";
+        $this->price = (int)$priceCentimes;
+        $this->categoryId = $categoryId;
+        $this->sellerEmail = $sellerEmail;
+        $this->deliveryModes = is_array($deliveryModes) ? $deliveryModes : array();
+        $this->photos = is_array($photos) ? $photos : array();
+        $this->createdDate = new DateTime();
+    }
+    
+    public function getTitle(){ 
+        return $this->title; 
+    }
+    public function getDescription(){ 
+        return $this->description; 
+    }
+    public function getPrice(){ 
+        return $this->price; 
+    }
+    public function getPriceFormatted(){
+        return number_format($this->price / 100, 2, ',', ' ') . " €";
+    }
+    public function getCategoryId(){ 
+        return $this->categoryId; 
+    }
+    public function getSellerEmail(){ 
+        return $this->sellerEmail; 
+    }
+    public function getPhotos(){ 
+        return $this->photos; 
+    }
+    public function getFirstPhotoUrl(){ 
+        return count($this->photos) ? 'uploads/annonces/' . $this->photos[0] : null; 
+    }
+    public function getDeliveryModes(){ 
+        return $this->deliveryModes; 
+    }
+    public function getCreatedDate(){ 
+        return $this->createdDate; 
     }
 
-    public function getId(){
-        return $this->id;
-    }
-    public function getUserId(){
-        return $this->userId;
-    }
-    public function getCategoryId(){
-        return $this->categoryId;
-    }
-    public function getTitle(){
-        return $this->title;
-    }
-    public function getDescription(){
-        return $this->description;
-    }
-    public function getPrice(){
-        return $this->price;
-    }
-    public function getDelivery(){
-        return $this->delivery;
-    }
-    public function getStatus(){
-        return $this->status;
-    }
-    public function getBuyerId(){
-        return $this->buyerId;
-    }
-    public function getSoldAt(){
-        return $this->soldAt;
+    public function isSold(){ 
+        return $this->sold; 
     }
 
-    public function setId($id){
-        $this->id = $id;
+    public function setSold($sold){ 
+        $this->sold = $sold; 
     }
-    public function setBuyerId($id){
-        $this->buyerId = $id;
+    
+    public function getShortDescription($max = 100){
+        $desc = strip_tags($this->description);
+        if (strlen($desc) <= $max) return $desc;
+        return substr($desc, 0, $max - 3) . '...';
     }
-    public function setSoldAt($t){
-        $this->soldAt = $t;
+    
+    public function acceptsDeliveryMode($mode){
+        return in_array($mode, $this->deliveryModes);
+    }
+
+    public function setCreatedDate($date){
+        $this->createdDate = $date;
+    }
+    public function setPhotos($photos){
+        $this->photos = $photos;
     }
 }

@@ -1,31 +1,31 @@
 <?php
 
+
 class User{
-    private $id;
-    private $email;
-    private $password;
-    private $role;
-
-    public function __construct($email, $password, $role = 'user'){
+    protected $email;
+    protected $passwordHash;
+    protected $role; 
+    protected $registrationDate;
+    
+    public function __construct($email, $passwordHash, $role = 'user'){
         $this->email = $email;
-        $this->password = $password;
+        $this->passwordHash = $passwordHash;
         $this->role = $role;
+        $this->registrationDate = new DateTime();
     }
-
-    public function getId(){
-        return $this->id;
+    
+    public function getEmail(){ return $this->email; }
+    public function getPasswordHash(){ return $this->passwordHash; }
+    public function getRole(){ return $this->role; }
+    public function getRegistrationDate(){ return $this->registrationDate; }
+    
+    public function isAdmin(){ return $this->role === 'admin'; }
+    
+    public function setPasswordHash($hash){ 
+        $this->passwordHash = $hash; 
     }
-    public function getEmail(){
-        return $this->email;
+    public function setRegistrationDate($date){
+        $this->registrationDate = $date;
     }
-    public function getPassword(){
-        return $this->password;
-    }
-    public function getRole(){
-        return $this->role;
-    }
-
-    public function setId($id){
-        $this->id = $id;
-    }
+    
 }

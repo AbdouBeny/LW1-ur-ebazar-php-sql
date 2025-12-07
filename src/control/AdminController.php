@@ -1,114 +1,106 @@
 <?php
-require_once 'model/CategoryStorage.php';
-require_once 'view/AdminView.php';
+require_once("Controller.php");
 
-class AdminController{
-    private $categoryStorage;
-    private $view;
 
-    public function __construct(){
-        $this->categoryStorage = new CategoryStorage();
-        $this->view = new AdminView();
-    }
-
-    /**
-     * page de gestion des catégories
-     */
-    public function categoryList(){
-        $categories = $this->categoryStorage->getAll();
-        $this->view->showCategoryList($categories);
-    }
-
-    /**
-     * forumulaire d'ajout d'une catégorie
-     */
-    public function addCategoryForm(){
-        $this->view->showAddCategoryForm();
-    }
-
-    /**
-     * traitement de l'ajout d'une catégorie
-     */
-    public function addCategory(){
-        $name = trim($_POST['name'] ?? '');
-        if($name === ''){
-            $this->view->showAddCategoryForm(["nom est vide"]);
+class AdminController extends Controller{
+    
+    public function showAdmin(){
+        if (!$this->currentUser || !$this->currentUser->isAdmin()){
+            $this->view->router->POSTredirect($this->view->router->getHomeURL(), "accès réservé aux administrateurs");
             return;
         }
-        if($this->categoryStorage->exists($name)){
-            $this->view->showAddCategoryForm(["la catégorie existe déjo"]);
+        
+        $annonces = $this->annonceStorage->readAll();
+        $users = $this->userStorage->readAll();
+        $categories = $this->categoryStorage->readAll();
+        
+        $this->view->prepareAdminPage($annonces, $users, $categories);
+    }
+    
+    public function deleteUser($email){
+        if (!$this->currentUser || !$this->currentUser->isAdmin()){
+            $this->view->router->POSTredirect($this->view->router->getHomeURL(), "Action non autorisée");
             return;
         }
-        $cat = new Category($name);
-        $this->categoryStorage->add($cat);
-        $this->view->showMessage("catégorie ajoutée.");
+        
+        if($email === $this->currentUser->getEmail()){
+            $this->view->router->POSTredirect($this->view->router->getAdminURL(), "vous ne pouvez pas supprimer votre propre compte");
+            return;
+        }
+        
+        // supprimer les annonces de l'utilisateur
+        $userAnnonces = $this->annonceStorage->readBySeller($email);
+        foreach ($userAnnonces as $id => $annonce){
+            $this->deletePhotos($annonce->getPhotos());
+            $this->annonceStorage->delete($id);
+        }
+        
+        // supprimer l'utilisateur
+        $this->userStorage->delete($email);
+        
+        $this->view->router->POSTredirect($this->view->router->getAdminURL(), "utilisateur supprimé avec succès");
     }
-
-    /**
-     * supprimer un utilisateurs
-     */
-    public function deleteUser($userId){
-        if(!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'admin'){
-            die("accès refusé");
+    
+    public function createCategory($post){
+        if (!$this->currentUser || !$this->currentUser->isAdmin()) {
+            $this->view->router->POSTredirect($this->view->router->getHomeURL(), "Action non autorisée");
+            return;
         }
-        if(!$userId){
-            exit("id manquant");
-        }
-
-        $storage = new UserStorage();
-
-        if($storage->delete($userId)){
-            echo "utilisateur supprimé.<br>";
-            echo '<a href="?action=categoryList">Retour admin</a>';
+        
+        $builder = new CategoryBuilder($post);
+        
+        if($builder->isValid()){
+            $category = $builder->createCategory();
+            $this->categoryStorage->create($category);
+            
+            $this->view->router->POSTredirect($this->view->router->getAdminURL(), "catégorie créée avec succès");
         }else{
-            echo "erreur suppression.";
+            $annonces = $this->annonceStorage->readAll();
+            $users = $this->userStorage->readAll();
+            $categories = $this->categoryStorage->readAll();
+            $this->view->prepareAdminPage($annonces, $users, $categories, $builder->getError());
         }
     }
-
-    /**
-     * supprimer une annonce
-     */
-    public function deleteAnnonce($id){
-        if(!isset($_SESSION['user_role']) || $_SESSION['user_role'] !== 'admin'){
-            die("accès refusé");
+    
+    public function updateCategory($id, $post){
+        if (!$this->currentUser || !$this->currentUser->isAdmin()){
+            $this->view->router->POSTredirect($this->view->router->getHomeURL(), "Action non autorisée");
+            return;
         }
-        if(!$id){
-            die("id annonce manquant");
+        
+        $category = $this->categoryStorage->read($id);
+        if(!$category){
+            $this->view->router->POSTredirect($this->view->router->getAdminURL(), "Catégorie non trouvée");
+            return;
         }
-
-        $storage = new AnnonceStorage();
-
-        if($storage->deleteAnnonce($id)){
-            echo "annonce supprimée.<br>";
-            echo '<a href="?action=categoryList">Retour admin</a>';
-        }else{
-            echo "erreur suppression annonce.";
+        
+        $name = isset($post['name']) ? trim($post['name']) : '';
+        if(empty($name)){
+            $this->view->router->POSTredirect($this->view->router->getAdminURL(), "Le nom de la catégorie est requis");
+            return;
         }
+        
+        $category->setName($name);
+        $this->categoryStorage->update($id, $category);
+        
+        $this->view->router->POSTredirect($this->view->router->getAdminURL(), "Catégorie mise à jour avec succès");
     }
-
-    /**
-     * formulaire pour renommer une catégorie
-     */
-    public function renameCategoryForm($id){
-        $storage = new CategoryStorage();
-        $cat = $storage->getById($id);
-
-        include 'view/admin/renameCategory.php';
-    }
-
-    public function renameCategory(){
-        $id = $_POST['id'];
-        $name = $_POST['name'];
-
-        $storage = new CategoryStorage();
-
-        if ($storage->rename($id, $name)){
-            echo "Catégorie renommée.";
-        } else {
-            echo "Erreur.";
+    
+    public function deleteCategory($id){
+        if (!$this->currentUser || !$this->currentUser->isAdmin()){
+            $this->view->router->POSTredirect($this->view->router->getHomeURL(), "Action non autorisée");
+            return;
         }
+        
+        // vérifier s il y a des annonces dans cette categorie
+        $annonces = $this->annonceStorage->readByCategory($id);
+        if (!empty($annonces)){
+            $this->view->router->POSTredirect($this->view->router->getAdminURL(), "impossible de supprimer une catégorie contenant des annonces");
+            return;
+        }
+        
+        $this->categoryStorage->delete($id);
+        $this->view->router->POSTredirect($this->view->router->getAdminURL(), "Catégorie supprimée avec succès");
     }
-
-
-
+    
 }

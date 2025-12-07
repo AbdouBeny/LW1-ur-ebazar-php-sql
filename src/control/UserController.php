@@ -1,91 +1,80 @@
 <?php
-require_once 'model/UserStorage.php';
-require_once 'model/User.php';
-require_once 'view/UserView.php';
+require_once("Controller.php");
 
 
-class UserController{
-    private $storage;
-    private $view;
+class UserController extends Controller{
 
-    public function __construct(){
-        $this->storage = new UserStorage();
-        $this->view = new UserView();
-        if (session_status() == PHP_SESSION_NONE) session_start();
+    public function showLogin(){
+        $this->view->prepareLoginPage();
     }
-
-    /**
-     * afficher le formulaire d'inscription
-     */
-    public function registerForm(){
-        $this->view->showRegisterForm();
+    
+    public function showRegister(){
+        $this->view->prepareRegisterPage();
     }
-
-    /**
-     * afficher le formulaire de connexion
-     */
-    public function loginForm(){
-        $this->view->showLoginForm();
-    }
-
-    /**
-     * traiter les données de l'inscription
-     */
-    public function register(){
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
-        $passwordConfirm = $_POST['password_confirm'] ?? '';
-
-        $errors = [];
-        if(!filter_var($email, FILTER_VALIDATE_EMAIL)){
-            $errors[] = "email invalide.";
-        }
-        if (strlen($password) < 6) {
-            $errors[] = "Le mot de passe doit contenir au moins 6 caractères.";
-        }
-        if ($password !== $passwordConfirm) {
-            $errors[] = "Les mots de passe ne correspondent pas.";
-        }
-        if($this->storage->emailExists($email)){
-            $errors[] = "cet email est déja utilisé.";
-        }
-
-        if(!empty($errors)){
-            $this->view->showRegisterForm($errors, $email);
+    
+    public function login($post){
+        $email = isset($post['email']) ? trim($post['email']) : '';
+        $password = isset($post['password']) ? $post['password'] : '';
+        
+        if(empty($email) || empty($password)){
+            $this->view->prepareLoginPage(null, "email et mot de passe requis");
             return;
         }
-
-        // si tout est ok, on passe à la creation de l'utilisateur
-        $user = new User($email, $password);
-        $this->storage->addUser($user);
-        $this->view->showMessage("inscription réussie ! vous pouvez maintenant vous connecter.");
-    }
-
-    /**
-     * traiter les données de la connexion
-     */
-    public function login(){
-        $email = $_POST['email'] ?? '';
-        $password = $_POST['password'] ?? '';
-
-        $user = $this->storage->checkLogin($email, $password);
-        if($user){
-            // on lance une sesssion
-            if (session_status() == PHP_SESSION_NONE) session_start();
-            $_SESSION['user_id'] = $user->getId();
-            $_SESSION['user_email'] = $user->getEmail();
-            $_SESSION['user_role'] = $user->getRole();
-            $this->view->showMessage("connexion réussie ! bienvenue ." . htmlspecialchars($user->getEmail()));
-        } else{
-            $this->view->showLoginForm(["identifiants incorrects"], $email);
+        
+        if($this->userStorage->checkAuth($email, $password)){
+            $user = $this->userStorage->read($email);
+            $_SESSION['user'] = $user;
+            
+            // redirection après login
+            $redirect = isset($_SESSION['redirect_after_login']) ? $_SESSION['redirect_after_login'] : $this->view->router->getHomeURL();
+            unset($_SESSION['redirect_after_login']);
+            
+            $this->view->router->POSTredirect($redirect, "Connexion réussie");
+        }else{
+            $this->view->prepareLoginPage(null, "Email ou mot de passe incorrect");
         }
     }
-
-    /**
-     * déconnexion
-     */
+    
+    public function register($post){
+        $builder = new UserBuilder($post);
+        
+        if($builder->isValid()){
+            if($this->userStorage->exists($builder->getData()[UserBuilder::EMAIL_REF])){
+                $this->view->prepareRegisterPage($builder, "Cet email est déjà utilisé");
+                return;
+            }
+            
+            $user = $builder->createUser();
+            $this->userStorage->create($user);
+            
+            $_SESSION['user'] = $user;
+            $this->view->router->POSTredirect($this->view->router->getHomeURL(), "Inscription réussie");
+        }else{
+            $this->view->prepareRegisterPage($builder, $builder->getError());
+        }
+    }
+    
     public function logout(){
-        session_destroy();
-        $this->view->showMessage("vous etes déconnecté.");
+        unset($_SESSION['user']);
+        $this->view->router->POSTredirect($this->view->router->getHomeURL(), "Déconnexion réussie");
+    }
+    
+    public function showProfile(){
+        if(!$this->currentUser){
+            $this->view->router->POSTredirect($this->view->router->getLoginURL(), "Veuillez vous connecter");
+            return;
+        }
+        $achatsAnnonces = array();
+        $ventesAnnonces = array();
+        $myAnnonces = $this->annonceStorage->readBySeller($this->currentUser->getEmail());
+        $achats = $this->achatStorage->findByBuyer($this->currentUser->getEmail());
+        foreach($achats as $achatId => $achat){
+            $achatsAnnonces[$achatId] = $this->annonceStorage->read($achat->getAnnonceId());
+        }
+        $ventes = $this->achatStorage->findBySeller($this->currentUser->getEmail());
+        foreach($ventes as $venteId => $vente){
+            $ventesAnnonces[$venteId] = $this->annonceStorage->read($vente->getAnnonceId());
+        }
+        $this->view->prepareProfilePage($this->currentUser, $myAnnonces, $achats, $ventes, $achatsAnnonces, $ventesAnnonces);
     }
 }
