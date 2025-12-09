@@ -30,8 +30,11 @@ class Controller{
         
         // récupérer les 4 dernieres annonces
         $last = array_slice($annonces, -4, 4, true);
-        foreach($categories as $category){
-            $countAnnoncesCat[$category->getId()] = $this->categoryStorage->countAnnonces($category->getId());
+        $countAnnoncesCat = [];
+        if(!empty($categories)){
+            foreach($categories as $category){
+                $countAnnoncesCat[$category->getId()] = $this->categoryStorage->countAnnonces($category->getId());
+            }
         }
         $this->view->prepareHomePage($categories, $last, $countAnnoncesCat);
     }

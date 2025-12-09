@@ -58,7 +58,7 @@ class UserView {
     
     public function renderCategoryPage($category, $annonces){
         $html = "<div class='category-page'>";
-        $html .= "<h2>Catégorie : " . htmlspecialchars($category->getName()) . "</h2>";
+        $html .= "<h2>Annonces :</h2>";
         
         if (empty($annonces)) {
             $html .= "<p class='no-results'>Aucune annonce dans cette catégorie.</p>";

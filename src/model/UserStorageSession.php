@@ -18,6 +18,12 @@ class UserStorageSession implements UserStorage{
                     'passwordHash' => password_hash('admin123', PASSWORD_DEFAULT),
                     'role' => 'admin',
                     'registrationDate' => new DateTime()
+                ),
+                'vendeur@example.com' => array(
+                    'email' => 'vendeur@example.com',
+                    'passwordHash' => password_hash('vendeur123', PASSWORD_DEFAULT),
+                    'role' => 'user',
+                    'registrationDate' => new DateTime()
                 )
             );
         }

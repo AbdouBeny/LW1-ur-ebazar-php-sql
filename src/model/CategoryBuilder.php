@@ -1,7 +1,5 @@
 <?php
 
-
-
 class CategoryBuilder{
     const NAME_REF = 'name';
     
@@ -25,7 +23,7 @@ class CategoryBuilder{
         }
         
         if(strlen($name) < 2){
-            $this->error = "Le nom de la catégorie doit contenir au moins 2 caractères.";
+            $this->error = "le nom de la catégorie doit contenir au moins 2 caractères.";
             return false;
         }
         

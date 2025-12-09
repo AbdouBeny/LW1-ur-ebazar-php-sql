@@ -12,7 +12,7 @@ class Annonce{
     protected $createdDate;
     protected $sold = false;
     
-    public function __construct($title, $description, $priceCentimes = 0, $categoryId, $sellerEmail, $deliveryModes = array(), $photos = array()) {
+    public function __construct($title, $description, $priceCentimes, $categoryId, $sellerEmail, $deliveryModes = array(), $photos = array()) {
         $this->title = $title;
         $this->description = $description;
         $this->price = (int)$priceCentimes;
