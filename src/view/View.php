@@ -21,6 +21,9 @@ class View{
         $this->buildMenu();
     }
     
+    /**
+     * construit le menu de navigation en fonction du role de l'utilisateur
+     */
     protected function buildMenu(){
         $this->menu = array(
             array('url' => $this->router->getHomeURL(), 'text' => 'Accueil'),
@@ -45,6 +48,9 @@ class View{
         }
     }
     
+    /**
+     * rend la page HTML compléte
+     */
     public function render() {
         echo "<!doctype html>\n<html lang='fr'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>";
         echo "<title>" . htmlspecialchars($this->title) . "</title>";

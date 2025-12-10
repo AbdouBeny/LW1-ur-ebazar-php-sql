@@ -3,6 +3,9 @@ require_once("AnnonceStorage.php");
 require_once("Annonce.php");
 require_once("config/Database.php");
 
+/**
+ * implementation sql du stockage des annonces
+ */
 class AnnonceStorageSql implements AnnonceStorage{
 
     private $pdo;
@@ -11,7 +14,11 @@ class AnnonceStorageSql implements AnnonceStorage{
         $this->pdo = Database::getInstance();
     }
 
-
+    /**
+     * lit une annonce par son ID
+     * @param string $id identifiant de l'annonce
+     * @return Annonce|null 
+     */
     public function read($id){
         $stmt = $this->pdo->prepare("SELECT * FROM annonces WHERE id = :id");
         $stmt->execute(['id' => $id]);
@@ -20,6 +27,10 @@ class AnnonceStorageSql implements AnnonceStorage{
         return $row ? $this->rowToAnnonce($row) : null;
     }
 
+    /**
+     * lit toutes les annonces
+     * @return array Tableau d'annonces indexées par ID
+     */
     public function readAll(){
         $stmt = $this->pdo->query("SELECT * FROM annonces ORDER BY created_date DESC");
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -31,6 +42,10 @@ class AnnonceStorageSql implements AnnonceStorage{
         return $annonces;
     }
 
+    /**
+     * lit toutes les annonces non vendues
+     * @return array Tableau d'annonces non vendues
+     */
     public function readAllNotSold(){
         $stmt = $this->pdo->prepare("
             SELECT * FROM annonces 
@@ -47,6 +62,11 @@ class AnnonceStorageSql implements AnnonceStorage{
         return $annonces;
     }
 
+    /**
+     * lit les annonces d'un vedeur
+     * @param string $email email du vendeur
+     * @return array Tableau d'annonces du vendeur
+     */
     public function readBySeller($email){
         $stmt = $this->pdo->prepare("
             SELECT * FROM annonces 
@@ -63,6 +83,11 @@ class AnnonceStorageSql implements AnnonceStorage{
         return $annonces;
     }
 
+    /**
+     * lit les annonces d'une catégorie
+     * @param string $categoryId ID de la catégorie
+     * @return array Tableau d'annonces de la catégorie
+     */
     public function readByCategory($categoryId) {
         $stmt = $this->pdo->prepare("
             SELECT * FROM annonces 
@@ -80,6 +105,13 @@ class AnnonceStorageSql implements AnnonceStorage{
         return $annonces;
     }
 
+    /**
+     * lit les annonces par catégorie avec pagination
+     * @param string $categoryId ID de la categorie
+     * @param int $page numero de page 
+     * @param int $perPage nombre d'annonces par page
+     * @return array Tableau d'annonces
+     */
     public function readByCategoryPaginated($categoryId, $page = 1, $perPage = 10){
         $offset = ($page - 1) * $perPage;
         
@@ -103,6 +135,11 @@ class AnnonceStorageSql implements AnnonceStorage{
         return $annonces;
     }
 
+    /**
+     * compte le nombre d'annonces dans une catégorie
+     * @param string $categoryId ID de la cat
+     * @return int nombre d'annonces
+     */
     public function countByCategory($categoryId){
         $stmt = $this->pdo->prepare("
             SELECT COUNT(*) 
@@ -114,7 +151,11 @@ class AnnonceStorageSql implements AnnonceStorage{
         return $stmt->fetchColumn();
     }
 
-
+    /**
+     * crée une nouvelle annonce
+     * @param Annonce $a annonce à créer
+     * @return string|false ID de l'annonce ou false en cas d'erreur
+     */
     public function create(Annonce $a){
         $id = $this->generateId($a);
 
@@ -147,7 +188,12 @@ class AnnonceStorageSql implements AnnonceStorage{
         return $success ? $id : false;
     }
 
-
+    /**
+     * met à jour une annonce
+     * @param string $id ID de l annonce à mettre à jour 
+     * @param Annonce $a nouvel objet annonce
+     * @return bool succées de l'operation
+     */
     public function update($id, Annonce $a){
         $stmt = $this->pdo->prepare("
             UPDATE annonces
@@ -180,19 +226,27 @@ class AnnonceStorageSql implements AnnonceStorage{
         ]);
     }
 
-
+    /**
+     * supprime une annonce
+     * @param string $id ID de l'annonce à suppri
+     * @return bool succés de l'op
+     */
     public function delete($id){
         $stmt = $this->pdo->prepare("DELETE FROM annonces WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
 
-
+    /**
+     * génere un ID unique pour une annonce
+     * @param Annonce $a l'annonce
+     * @return string ID generer
+     */
     private function generateId(Annonce $a){
         $base = preg_replace('/[^a-z0-9\-]/i', '-', strtolower($a->getTitle()));
         $base = trim($base, '-');
         $id = $base ? $base . '-' . uniqid() : 'annonce-' . uniqid();
         
-        // Vérifier si l'ID existe déjà
+        // vérifier si l'ID existe déjà
         do {
             $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM annonces WHERE id = :id");
             $stmt->execute(['id' => $id]);
@@ -206,6 +260,11 @@ class AnnonceStorageSql implements AnnonceStorage{
         return $id;
     }
 
+    /**
+     * convertit une ligne de base de données en objet Annonce
+     * @param array $row ligne de résultat de la base de données
+     * @return Annonce l'objet annonce crée
+     */
     private function rowToAnnonce($row){
         $photos = json_decode($row['photos'], true) ?: [];
         $delivery_modes = json_decode($row['delivery_modes'], true) ?: [];

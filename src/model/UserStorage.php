@@ -1,6 +1,9 @@
 <?php
 
-
+/**
+ * interface pour le stockage des utilisateurs 
+ * définit les méthodes CRUD pour la gestion des utilisateurs
+ */
 interface UserStorage{
     public function read($id);
     public function readAll();

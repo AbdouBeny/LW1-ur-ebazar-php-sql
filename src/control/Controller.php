@@ -7,6 +7,7 @@ require_once("model/UserBuilder.php");
 require_once("model/CategoryBuilder.php");
 require_once("model/Achat.php");
 
+
 class Controller{
     protected $view;
     protected $annonceStorage;
@@ -24,6 +25,9 @@ class Controller{
         $this->currentUser = isset($_SESSION['user']) ? $_SESSION['user'] : null;
     }
     
+    /**
+     * affiche la page d'accueil avec catégories et dernieres annonces
+     */
     public function showHome(){
         $categories = $this->categoryStorage->readAll();
         $annonces = $this->annonceStorage->readAllNotSold();
@@ -39,6 +43,9 @@ class Controller{
         $this->view->prepareHomePage($categories, $last, $countAnnoncesCat);
     }
     
+    /**
+     * affiche la liste des annonces, avec ou sans filtre par catégorie
+     */
     public function showList($categoryId = null){
         if($categoryId){
             $category = $this->categoryStorage->read($categoryId);
@@ -59,6 +66,9 @@ class Controller{
         }
     }
     
+    /**
+     * affiche le détail d'une annonce
+     */
     public function showAnnonce($id){
         if (empty($id)){
             $this->view->prepareNotFoundPage("Annonce non trouvée");
@@ -75,6 +85,9 @@ class Controller{
         }
     }
     
+    /**
+     * affiche le forumularie de creation d'annonce
+     */
     public function createNewAnnonce(){
         if (!$this->currentUser){
             $_SESSION['redirect_after_login'] = $this->view->router->getAnnonceCreationURL();
@@ -89,6 +102,9 @@ class Controller{
         $this->view->prepareAnnonceCreationPage($categories);
     }
     
+    /**
+     * sauvegarde une nouvelle annonce
+     */
     public function saveNewAnnonce($post, $files){
         if (!$this->currentUser){
             $this->view->router->POSTredirect($this->view->router->getHomeURL(), "Action non autorisée");
@@ -112,6 +128,9 @@ class Controller{
         }
     }
 
+    /**
+     * supprime les fichiers photos d'une annonce
+     */
     public function deletePhotos($photos){
         $uploadDir = 'uploads/annonces/';
         foreach ($photos as $photo) {
@@ -122,6 +141,9 @@ class Controller{
         }
     }
     
+    /**
+     * supprime une annonce
+     */
     public function deleteAnnonce($id){
         if(!$this->currentUser){
             $this->view->router->POSTredirect($this->view->router->getHomeURL(), "Action non autorisée");
@@ -159,6 +181,9 @@ class Controller{
         }
     }
     
+    /**
+     * traite l'achat d'une annonce
+     */
     public function purchaseAnnonce($id, $post){
         if(!$this->currentUser){
             $_SESSION['redirect_after_login'] = $this->view->router->getAnnonceURL($id);
@@ -169,7 +194,7 @@ class Controller{
             $this->view->router->POSTredirect($this->view->router->getHomeURL(), "les administrateurs ne peuvent pas déposer d'annonces");
             return;
         }
-        
+
         $annonce = $this->annonceStorage->read($id);
         if(!$annonce){
             $this->view->router->POSTredirect($this->view->router->getHomeURL(), "Annonce non trouvée");
@@ -204,6 +229,9 @@ class Controller{
         $this->view->router->POSTredirect($this->view->router->getUserProfileURL(), "Achat confirmé avec succès");
     }
     
+    /**
+     * confirme la réception d'un achat
+     */
     public function confirmReception($achatId){
         if (!$this->currentUser){
             $this->view->router->POSTredirect($this->view->router->getHomeURL(), "Action non autorisée");

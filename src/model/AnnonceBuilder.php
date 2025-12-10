@@ -1,7 +1,10 @@
 <?php
 require_once("Annonce.php");
 
-
+/**
+ * builder pour créer et valider les objets Annonce
+ * gere la validation des données de formulaire pour les annonces
+ */
 class AnnonceBuilder{
     const TITLE_REF = 'title';
     const DESCRIPTION_REF = 'description';
@@ -20,11 +23,16 @@ class AnnonceBuilder{
         $this->photos = $photos;
         $this->error = null;
     }
-    
+    // getters
     public function getData(){ return $this->data; }
     public function getPhotos(){ return $this->photos; }
     public function getError(){ return $this->error; }
     
+
+    /**
+     * valide les données du formularire d'annonce
+     * @return bool vrai si les données sont validés
+     */
     public function isValid(){
         // vérifier si post dépasse post_max_size (alors on aurait pu ajouter un fichier php.ini pour augementer post_max_size)
         if (!empty($_SERVER['CONTENT_LENGTH']) && 
@@ -126,6 +134,11 @@ class AnnonceBuilder{
         return true;
     }
     
+    /**
+     * crée un nouvel objet Annonce à partir des données validées
+     * @param string $sellerEmail email de vendeur
+     * @return Annonce l'objet annonce crée
+     */
     public function createAnnonce($sellerEmail){
         $deliveryModes = array();
         if (isset($this->data[self::DELIVERY_POSTE_REF])) $deliveryModes[] = 'poste';

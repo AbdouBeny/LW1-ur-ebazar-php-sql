@@ -8,6 +8,9 @@ class AdminView{
         $this->router = $router;
     }
     
+    /**
+     * génére le html de la page d'administration
+     */
     public function renderAdminPage($annonces, $users, $categories, $error = null){
         $html = "<div class='admin-page'>";
         

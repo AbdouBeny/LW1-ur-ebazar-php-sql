@@ -8,6 +8,9 @@ class UserView {
         $this->router = $router;
     }
     
+    /**
+     * génere le HTML de la page d'accueil
+     */
     public function renderHomePage($categories, $lastAnnonces, $countAnnoncesCat){
         $html = "<div class='home-page'>";
         
@@ -43,6 +46,9 @@ class UserView {
         return $html;
     }
     
+    /**
+     * génere le HTML de la liste des annonces
+     */
     public function renderListPage($annonces){
         if(empty($annonces)){
             return "<p class='no-results'>Aucune annonce disponible.</p>";
@@ -56,6 +62,9 @@ class UserView {
         return $html;
     }
     
+    /**
+     * génre le HTML d'une page de catégorie avec pagination
+     */
     public function renderCategoryPage($category, $annonces, $currentPage = 1, $totalPages = 1){
         $html = "<div class='category-page'>";
         
@@ -92,6 +101,9 @@ class UserView {
         return $html;
     }
     
+    /**
+     * génere le HTML du détail d'une annonce
+     */
     public function renderAnnoncePage($annonce, $id, $category, $seller, $isLoggedIn){
         $html = "<div class='annonce-detail'>";
         
@@ -185,6 +197,9 @@ class UserView {
         return $html;
     }
     
+    /**
+     * génere le HTML du formulaire de création d'annonce
+     */
     public function renderAnnonceCreationPage($categories, $builder = null){
         $data = $builder ? $builder->getData() : array();
         $error = $builder ? $builder->getError() : null;
@@ -249,6 +264,9 @@ class UserView {
         return $html;
     }
     
+    /**
+     * génere le HTML du formulare de connexion
+     */
     public function renderLoginPage($builder = null, $error = null){
         $data = $builder ? $builder->getData() : array();
         
@@ -275,6 +293,9 @@ class UserView {
         return $html;
     }
     
+    /**
+     * génere le HTML du formu d'inscription
+     */
     public function renderRegisterPage($builder = null, $error = null){
         $data = $builder ? $builder->getData() : array();
         
@@ -307,6 +328,9 @@ class UserView {
         return $html;
     }
     
+    /**
+     * génere le HTML de la page de profil utilisateur
+     */
     public function renderProfilePage($user, $myAnnonces, $achats, $ventes, $achatsAnnonces, $ventesAnnonces){
         $html = "<div class='profile-page'>";
         
@@ -373,6 +397,9 @@ class UserView {
         return $html;
     }
     
+    /**
+     * génere le HTML d'une annonce
+     */
     protected function renderAnnonceCard($annonce, $id, $showDelete = false){
         if(!$annonce){
             return "<div class='annonce-card error'>Annonce introuvable</div>";
@@ -404,6 +431,9 @@ class UserView {
         return $html;
     }
     
+    /**
+     * génere le HTML d'une ligne d'annonce (pour les listes)
+     */
     protected function renderAnnonceRow($annonce, $id) {
         $html = "<div class='annonce-row'>";
         $html .= "<a href='" . $this->router->getAnnonceURL($id) . "' class='annonce-row-link'>";
@@ -422,6 +452,9 @@ class UserView {
         return $html;
     }
     
+    /**
+     * geenre le HTML d'une ligne d'achat
+     */
     protected function renderAchatRow($achat, $achatId, $isBuyer) {
         $html = "<div class='achat-row'>";
         $html .= "<div class='achat-info'>";

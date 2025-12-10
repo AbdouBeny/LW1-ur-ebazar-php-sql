@@ -3,7 +3,9 @@ require_once("AchatStorage.php");
 require_once("Achat.php");
 require_once("config/Database.php");
 
-
+/**
+ * implémentation SQL du stockage des achats
+ */
 class AchatStorageSql implements AchatStorage{
 
     private $pdo;
@@ -12,7 +14,11 @@ class AchatStorageSql implements AchatStorage{
         $this->pdo = Database::getInstance();
     }
 
-
+    /**
+     * lit un achat par son ID
+     * @param string $id identifiant de l'achat
+     * @return Achat|null 
+     */
     public function read($id){
         $stmt = $this->pdo->prepare("SELECT * FROM achats WHERE id = :id");
         $stmt->execute(['id' => $id]);
@@ -21,6 +27,10 @@ class AchatStorageSql implements AchatStorage{
         return $row ? $this->rowToAchat($row) : null;
     }
 
+    /**
+     * lit tous les achat
+     * @return array Tableau d'achats indexés par ID
+     */
     public function readAll(){
         $stmt = $this->pdo->query("SELECT * FROM achats ORDER BY purchase_date DESC");
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -33,8 +43,11 @@ class AchatStorageSql implements AchatStorage{
         return $achats;
     }
 
-
-
+    /**
+     * crée un nouvel achat 
+     * @param Achat $a l'achat à créer
+     * @return bool succés
+     */
     public function create(Achat $a){
         $stmt = $this->pdo->prepare("
             INSERT INTO achats (
@@ -57,7 +70,12 @@ class AchatStorageSql implements AchatStorage{
         ]);
     }
 
-
+    /**
+     * met à jour un achat
+     * @param string $id ID de l'achat à mettre à jour
+     * @param Achat $a nouvel objet achat
+     * @return bool succés
+     */
     public function update($id, Achat $a){
         $stmt = $this->pdo->prepare("
             UPDATE achats
@@ -81,14 +99,21 @@ class AchatStorageSql implements AchatStorage{
         ]);
     }
 
-
-
+    /**
+     * supprime un achat
+     * @param string îd ID de l'achat à supprimer
+     * @return bool succés
+     */
     public function delete($id){
         $stmt = $this->pdo->prepare("DELETE FROM achats WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
 
-
+    /**
+     * recherche les achats d'un acheteur
+     * @param string $email email de l'achteur
+     * @return array Tableau d'achats 
+     */
     public function findByBuyer($email){
         $stmt = $this->pdo->prepare("
             SELECT * FROM achats 
@@ -106,6 +131,11 @@ class AchatStorageSql implements AchatStorage{
         return $achats;
     }
 
+    /**
+     * recherche les ventes d'un vendeur
+     * @param string $email email du vendeur
+     * @return array Tableau de ventes du vendeur
+     */
     public function findBySeller($email){
         $stmt = $this->pdo->prepare("
             SELECT * FROM achats 
@@ -123,6 +153,11 @@ class AchatStorageSql implements AchatStorage{
         return $achats;
     }
 
+    /**
+     * recherche un achat par annonce
+     * @param string $annonceId ID de l'annonce
+     * @return Achat|null 
+     */
     public function findByAnnonce($annonceId){
         $stmt = $this->pdo->prepare("
             SELECT * FROM achats 
@@ -134,7 +169,9 @@ class AchatStorageSql implements AchatStorage{
         return $row ? $this->rowToAchat($row) : null;
     }
 
-
+    /**
+     * convertit une ligne de base de données en objet Achat
+     */
     private function rowToAchat($row){
         $achat = new Achat(
             $row['id'],

@@ -22,7 +22,7 @@ class Annonce{
         $this->photos = is_array($photos) ? $photos : array();
         $this->createdDate = new DateTime();
     }
-    
+    // getters
     public function getTitle(){ 
         return $this->title; 
     }
@@ -53,29 +53,39 @@ class Annonce{
     public function getCreatedDate(){ 
         return $this->createdDate; 
     }
-
-    public function isSold(){ 
-        return $this->sold; 
-    }
-
-    public function setSold($sold){ 
-        $this->sold = $sold; 
-    }
-    
-    public function getShortDescription($max = 100){
-        $desc = strip_tags($this->description);
-        if (strlen($desc) <= $max) return $desc;
-        return substr($desc, 0, $max - 3) . '...';
-    }
-    
-    public function acceptsDeliveryMode($mode){
-        return in_array($mode, $this->deliveryModes);
-    }
-
+    // setters
     public function setCreatedDate($date){
         $this->createdDate = $date;
     }
     public function setPhotos($photos){
         $this->photos = $photos;
     }
+    public function setSold($sold){ 
+        $this->sold = $sold; 
+    }
+
+    public function isSold(){ 
+        return $this->sold; 
+    }
+    
+    /**
+     * retourne une description tronquée
+     * @param int $max longueur max
+     * @return string 
+     */
+    public function getShortDescription($max = 100){
+        $desc = strip_tags($this->description);
+        if (strlen($desc) <= $max) return $desc;
+        return substr($desc, 0, $max - 3) . '...';
+    }
+    
+    /**
+     * verifie si un mode de livraison est accepté
+     * @param string $mode 
+     * @return bool 
+     */
+    public function acceptsDeliveryMode($mode){
+        return in_array($mode, $this->deliveryModes);
+    }
+
 }

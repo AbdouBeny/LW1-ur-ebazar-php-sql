@@ -1,6 +1,9 @@
 <?php
 
-
+/**
+ * interface pour le stockage des catégories
+ * définit les méthodes CRUD pour la gestion des catégories
+ */
 interface CategoryStorage{
     public function read($id);
     public function readAll();

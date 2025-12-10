@@ -16,7 +16,7 @@ class Achat{
         $this->deliveryMode = $deliveryMode;
         $this->purchaseDate = new DateTime();
     }
-    
+    // getters
     public function getId(){ 
         return $this->id;
     }
@@ -38,6 +38,7 @@ class Achat{
     public function isReceived(){ 
         return $this->received; 
     }
+    //setters
     public function setReceived($received){ 
         $this->received = $received; 
     }

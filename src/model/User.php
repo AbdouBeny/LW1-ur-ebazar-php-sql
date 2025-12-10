@@ -14,18 +14,24 @@ class User{
         $this->registrationDate = new DateTime();
     }
     
+    // getters
     public function getEmail(){ return $this->email; }
     public function getPasswordHash(){ return $this->passwordHash; }
     public function getRole(){ return $this->role; }
     public function getRegistrationDate(){ return $this->registrationDate; }
     
-    public function isAdmin(){ return $this->role === 'admin'; }
-    
+    // setters
     public function setPasswordHash($hash){ 
         $this->passwordHash = $hash; 
     }
     public function setRegistrationDate($date){
         $this->registrationDate = $date;
     }
+
+    /**
+     * verifie si user est administrateur
+     * @return bool vrai si est admin
+     */
+    public function isAdmin(){ return $this->role === 'admin'; }
     
 }

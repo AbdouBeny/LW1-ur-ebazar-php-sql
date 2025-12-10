@@ -1,4 +1,9 @@
 <?php
+
+/**
+ * interface pour le stockage des achats
+ * définit les methodes CRUD pour la gestion des ahcats
+ */
 interface AchatStorage{
     public function read($id);
     public function readAll();

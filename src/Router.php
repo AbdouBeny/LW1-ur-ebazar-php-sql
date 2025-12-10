@@ -5,8 +5,19 @@ require_once("control/AdminController.php");
 require_once("view/View.php");
 require_once("TokenCSRF.php");
 
-
+/**
+ * Routeur principal de l'application
+ */
 class Router{
+
+    /**
+     * methode principale du routeur qui analyse l'action demandée 
+     * et appelle la méthode appropriée du controleur
+     * @param $annonceStorage stokage des annonces
+     * @param $userStorage stockage des utilisateurs
+     * @param $categoryStorage stockage des catégories
+     * @param $achatStorage stockage des achats
+     */
     public function main($annonceStorage = null, $userStorage =null, $categoryStorage = null, $achatStorage = null){
         if (session_status() === PHP_SESSION_NONE){
             session_start();
@@ -20,7 +31,6 @@ class Router{
         if($_SERVER['REQUEST_METHOD'] === 'POST'){
             $this->validateCSRF();
         }
-
         // Feedback 
         $feedback = null;
         if (isset($_SESSION['feedback'])){
@@ -87,6 +97,10 @@ class Router{
         $view->render();
     }
 
+    /**
+     * retourne le nom du script en cours d'execution 
+     * @return string nom du script 
+     */
     protected function scriptName(){
         return htmlspecialchars(basename($_SERVER['PHP_SELF']));
     }
@@ -178,6 +192,11 @@ class Router{
         return $this->scriptName() . "?action=supprimerCategorie&id=" . urlencode($categoryId);
     }
 
+    /**
+     * redirection post avec feedback
+     * @param string $url URL de destination
+     * @param string $feedback message de feeback à afficher
+     */
     public function POSTredirect($url, $feedback = null){
         if(session_status() === PHP_SESSION_NONE) {
             session_start();

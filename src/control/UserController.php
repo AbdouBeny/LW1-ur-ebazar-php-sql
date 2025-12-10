@@ -4,14 +4,23 @@ require_once("Controller.php");
 
 class UserController extends Controller{
 
+    /**
+     * affiche le formulaire de connexion
+     */
     public function showLogin(){
         $this->view->prepareLoginPage();
     }
     
+    /**
+     * affiche le formulaire d'inscription
+     */
     public function showRegister(){
         $this->view->prepareRegisterPage();
     }
     
+    /**
+     * traite la connextion d'un utilisateur
+     */
     public function login($post){
         $email = isset($post['email']) ? trim($post['email']) : '';
         $password = isset($post['password']) ? $post['password'] : '';
@@ -35,6 +44,9 @@ class UserController extends Controller{
         }
     }
     
+    /**
+     * tratie l'inscription d'un nouvel utilisateur
+     */
     public function register($post){
         $builder = new UserBuilder($post);
         
@@ -54,11 +66,18 @@ class UserController extends Controller{
         }
     }
     
+    /**
+     * déconncte l'utilisateur courant
+     */
     public function logout(){
         unset($_SESSION['user']);
         $this->view->router->POSTredirect($this->view->router->getHomeURL(), "Déconnexion réussie");
     }
     
+    /**
+     * affiche le profil de l'utilisateur courant
+     * (annonces en vente, achats effectues, ventes réalisées)
+     */
     public function showProfile(){
         if(!$this->currentUser){
             $this->view->router->POSTredirect($this->view->router->getLoginURL(), "Veuillez vous connecter");

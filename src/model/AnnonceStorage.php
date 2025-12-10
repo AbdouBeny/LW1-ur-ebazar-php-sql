@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * interface pour le stockage des annonces
+ * définit les methodes CRUD pour la gestion des annonces
+ */
 interface AnnonceStorage{
     public function read($id);
     public function readAll();

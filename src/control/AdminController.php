@@ -4,6 +4,9 @@ require_once("Controller.php");
 
 class AdminController extends Controller{
     
+    /**
+     * affiche la page d'administration
+     */
     public function showAdmin(){
         if (!$this->currentUser || !$this->currentUser->isAdmin()){
             $this->view->router->POSTredirect($this->view->router->getHomeURL(), "accès réservé aux administrateurs");
@@ -17,6 +20,9 @@ class AdminController extends Controller{
         $this->view->prepareAdminPage($annonces, $users, $categories);
     }
     
+    /**
+     * supprime un utilisateur et toutes ses annonces
+     */
     public function deleteUser($email){
         if (!$this->currentUser || !$this->currentUser->isAdmin()){
             $this->view->router->POSTredirect($this->view->router->getHomeURL(), "Action non autorisée");
@@ -41,6 +47,9 @@ class AdminController extends Controller{
         $this->view->router->POSTredirect($this->view->router->getAdminURL(), "utilisateur supprimé avec succès");
     }
     
+    /**
+     * crée une nouvelle catégorie
+     */
     public function createCategory($post){
         if (!$this->currentUser || !$this->currentUser->isAdmin()) {
             $this->view->router->POSTredirect($this->view->router->getHomeURL(), "Action non autorisée");
@@ -62,6 +71,9 @@ class AdminController extends Controller{
         }
     }
     
+    /**
+     * met à jour le nom d'une catégorie
+     */
     public function updateCategory($id, $post){
         if (!$this->currentUser || !$this->currentUser->isAdmin()){
             $this->view->router->POSTredirect($this->view->router->getHomeURL(), "Action non autorisée");
@@ -86,6 +98,9 @@ class AdminController extends Controller{
         $this->view->router->POSTredirect($this->view->router->getAdminURL(), "Catégorie mise à jour avec succès");
     }
     
+    /**
+     * supprime une catégorie
+     */
     public function deleteCategory($id){
         if (!$this->currentUser || !$this->currentUser->isAdmin()){
             $this->view->router->POSTredirect($this->view->router->getHomeURL(), "Action non autorisée");
