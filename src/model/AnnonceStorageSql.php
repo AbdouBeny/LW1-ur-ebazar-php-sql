@@ -11,7 +11,6 @@ class AnnonceStorageSql implements AnnonceStorage{
         $this->pdo = Database::getInstance();
     }
 
-    /* ======================== READ ======================== */
 
     public function read($id){
         $stmt = $this->pdo->prepare("SELECT * FROM annonces WHERE id = :id");
@@ -81,8 +80,40 @@ class AnnonceStorageSql implements AnnonceStorage{
         return $annonces;
     }
 
+    public function readByCategoryPaginated($categoryId, $page = 1, $perPage = 10){
+        $offset = ($page - 1) * $perPage;
+        
+        $stmt = $this->pdo->prepare("
+            SELECT * FROM annonces 
+            WHERE category_id = :category_id 
+            AND sold = 0
+            ORDER BY created_date DESC
+            LIMIT :limit OFFSET :offset
+        ");
+        $stmt->bindValue(':category_id', $categoryId);
+        $stmt->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $annonces = [];
+        foreach ($rows as $row) {
+            $annonces[$row['id']] = $this->rowToAnnonce($row);
+        }
+        return $annonces;
+    }
 
-    /* ======================== CREATE ======================== */
+    public function countByCategory($categoryId){
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(*) 
+            FROM annonces 
+            WHERE category_id = :category_id 
+            AND sold = 0
+        ");
+        $stmt->execute(['category_id' => $categoryId]);
+        return $stmt->fetchColumn();
+    }
+
 
     public function create(Annonce $a){
         $id = $this->generateId($a);
@@ -117,8 +148,6 @@ class AnnonceStorageSql implements AnnonceStorage{
     }
 
 
-    /* ======================== UPDATE ======================== */
-
     public function update($id, Annonce $a){
         $stmt = $this->pdo->prepare("
             UPDATE annonces
@@ -152,15 +181,11 @@ class AnnonceStorageSql implements AnnonceStorage{
     }
 
 
-    /* ======================== DELETE ======================== */
-
     public function delete($id){
         $stmt = $this->pdo->prepare("DELETE FROM annonces WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
 
-
-    /* ======================== HELPERS ======================== */
 
     private function generateId(Annonce $a){
         $base = preg_replace('/[^a-z0-9\-]/i', '-', strtolower($a->getTitle()));
@@ -199,4 +224,6 @@ class AnnonceStorageSql implements AnnonceStorage{
 
         return $annonce;
     }
+
+
 }

@@ -12,7 +12,6 @@ class AchatStorageSql implements AchatStorage{
         $this->pdo = Database::getInstance();
     }
 
-    /* ======================== READ ======================== */
 
     public function read($id){
         $stmt = $this->pdo->prepare("SELECT * FROM achats WHERE id = :id");
@@ -35,7 +34,6 @@ class AchatStorageSql implements AchatStorage{
     }
 
 
-    /* ======================== CREATE ======================== */
 
     public function create(Achat $a){
         $stmt = $this->pdo->prepare("
@@ -59,8 +57,6 @@ class AchatStorageSql implements AchatStorage{
         ]);
     }
 
-
-    /* ======================== UPDATE ======================== */
 
     public function update($id, Achat $a){
         $stmt = $this->pdo->prepare("
@@ -86,15 +82,12 @@ class AchatStorageSql implements AchatStorage{
     }
 
 
-    /* ======================== DELETE ======================== */
 
     public function delete($id){
         $stmt = $this->pdo->prepare("DELETE FROM achats WHERE id = :id");
         return $stmt->execute(['id' => $id]);
     }
 
-
-    /* ======================== FIND METHODS ======================== */
 
     public function findByBuyer($email){
         $stmt = $this->pdo->prepare("
@@ -141,8 +134,6 @@ class AchatStorageSql implements AchatStorage{
         return $row ? $this->rowToAchat($row) : null;
     }
 
-
-    /* ======================== HELPERS ======================== */
 
     private function rowToAchat($row){
         $achat = new Achat(

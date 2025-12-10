@@ -28,7 +28,10 @@ class View{
         );
         
         if (isset($_SESSION['user'])) {
-            $this->menu[] = array('url' => $this->router->getAnnonceCreationURL(), 'text' => 'Déposer une annonce');
+            if(!$_SESSION['user']->isAdmin()){
+                $this->menu[] = array('url' => $this->router->getAnnonceCreationURL(), 'text' => 'Déposer une annonce');
+            }
+            
             $this->menu[] = array('url' => $this->router->getUserProfileURL(), 'text' => 'Mon compte');
             
             if ($_SESSION['user']->isAdmin()) {
@@ -78,9 +81,9 @@ class View{
         $this->content = $this->userView->renderListPage($annonces);
     }
     
-    public function prepareCategoryPage($category, $annonces){
+    public function prepareCategoryPage($category, $annonces, $currentPage, $totalPages){
         $this->title = "Catégorie : " . $category->getName();
-        $this->content = $this->userView->renderCategoryPage($category, $annonces);
+        $this->content = $this->userView->renderCategoryPage($category, $annonces, $currentPage, $totalPages);
     }
     
     public function prepareAnnoncePage($annonce, $id, $category, $seller){

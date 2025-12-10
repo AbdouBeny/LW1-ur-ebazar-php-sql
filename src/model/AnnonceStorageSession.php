@@ -116,6 +116,25 @@ class AnnonceStorageSession implements AnnonceStorage{
         }
         return $out;
     }
+
+    public function readByCategoryPaginated($categoryId, $page, $perPage){
+        $annonces = $this->readByCategory($categoryId);
+        
+        $start = ($page - 1) * $perPage;
+        $paginated = array_slice($annonces, $start, $perPage, true);
+        
+        return $paginated;
+    }
+    
+    public function countByCategory($categoryId){
+        $count = 0;
+        foreach($_SESSION[$this->key] as $id => $arr){
+            if ($arr['categoryId'] === $categoryId && (!isset($arr['sold']) || !$arr['sold'])){
+                $count++;
+            }
+        }
+        return $count;
+    }
     
     public function create(Annonce $a){
         $base = preg_replace('/[^a-z0-9\-]/i', '-', strtolower($a->getTitle()));
@@ -158,6 +177,14 @@ class AnnonceStorageSession implements AnnonceStorage{
     
     public function delete($id){
         if (!isset($_SESSION[$this->key][$id])) return false;
+        $achats = $_SESSION["achats"];
+        if(!empty($achats)){
+            foreach($achats as $ida => $achat){
+                if($achat['annonceId'] === $id){
+                    unset($_SESSION['achats'][$ida]);
+                }
+            }
+        }
         unset($_SESSION[$this->key][$id]);
         return true;
     }

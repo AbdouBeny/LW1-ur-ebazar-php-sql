@@ -26,6 +26,14 @@ class AnnonceBuilder{
     public function getError(){ return $this->error; }
     
     public function isValid(){
+        // vérifier si post dépasse post_max_size (alors on aurait pu ajouter un fichier php.ini pour augementer post_max_size)
+        if (!empty($_SERVER['CONTENT_LENGTH']) && 
+            $_SERVER['CONTENT_LENGTH'] > 8 * 1024 * 1024){
+
+            $this->error = "Le formulaire est trop volumineux. Photo trop grande.";
+            return false;
+        }
+
         $title = isset($this->data[self::TITLE_REF]) ? trim($this->data[self::TITLE_REF]) : '';
         $description = isset($this->data[self::DESCRIPTION_REF]) ? trim($this->data[self::DESCRIPTION_REF]) : '';
         $price = isset($this->data[self::PRICE_REF]) ? trim($this->data[self::PRICE_REF]) : '';
@@ -103,6 +111,7 @@ class AnnonceBuilder{
                         $this->error = "Les photos doivent être au format JPEG/JPG.";
                         return false;
                     }
+                    chmod('uploads/annonces/', 0777);
                     $filename = uniqid() . '.jpg';
                     move_uploaded_file($this->photos['tmp_name'][$i], 'uploads/annonces/' . $filename);
                     $this->uploadedPhotos[] = $filename;

@@ -1,4 +1,4 @@
-/* Reset et base */
+/* Reset & base */
 * {
     margin: 0;
     padding: 0;
@@ -18,7 +18,7 @@ body {
     padding: 0 20px;
 }
 
-/* Header et navigation */
+/* Header & navigation */
 header {
     background-color: #fff;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -72,7 +72,7 @@ header {
     border: 1px solid #f5c6cb;
 }
 
-/* Formulaires */
+/* Forms */
 .auth-form,
 .annonce-form,
 .admin-form {
@@ -134,7 +134,7 @@ header {
     border: 1px solid #f5c6cb;
 }
 
-/* Boutons */
+/* Buttons */
 .btn {
     padding: 0.75rem 1.5rem;
     border: none;
@@ -372,7 +372,7 @@ header {
 }
 
 .delivery-modes ul {
-    list-style-type: none;
+    list-style: none;
     padding-left: 0;
 }
 
@@ -403,6 +403,39 @@ header {
     border-radius: 4px;
     font-weight: bold;
     margin-top: 1rem;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+}
+
+.page-link {
+    padding: 0.5rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #007bff;
+    transition: all 0.2s;
+}
+
+.page-link:hover {
+    background-color: #f8f9fa;
+    border-color: #007bff;
+}
+
+.current-page {
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px;
+    font-weight: bold;
 }
 
 /* Profile page */
@@ -525,7 +558,7 @@ header {
     margin-bottom: 1rem;
 }
 
-/* Utility classes */
+/* Utility */
 .no-results {
     text-align: center;
     padding: 3rem;

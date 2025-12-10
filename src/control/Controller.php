@@ -46,8 +46,13 @@ class Controller{
                 $this->view->prepareNotFoundPage("Catégorie non trouvée");
                 return;
             }
-            $annonces = $this->annonceStorage->readByCategory($categoryId);
-            $this->view->prepareCategoryPage($category, $annonces);
+
+            // pagination
+            $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+            $annonces = $this->annonceStorage->readByCategoryPaginated($categoryId, $page, 10);
+            $totalAnnonces = $this->annonceStorage->countByCategory($categoryId);
+            $totalPages = ceil($totalAnnonces / 10);
+            $this->view->prepareCategoryPage($category, $annonces, $page, $totalPages);
         }else{
             $annonces = $this->annonceStorage->readAllNotSold();
             $this->view->prepareListPage($annonces);
@@ -76,7 +81,10 @@ class Controller{
             $this->view->router->POSTredirect($this->view->router->getLoginURL(), "Veuillez vous connecter pour déposer une annonce");
             return;
         }
-        
+        if($this->currentUser->isAdmin()){
+            $this->view->router->POSTredirect($this->view->router->getHomeURL(), "les administrateurs ne peuvent pas déposer d'annonces");
+            return;
+        }
         $categories = $this->categoryStorage->readAll();
         $this->view->prepareAnnonceCreationPage($categories);
     }
@@ -86,7 +94,11 @@ class Controller{
             $this->view->router->POSTredirect($this->view->router->getHomeURL(), "Action non autorisée");
             return;
         }
-        
+        if($this->currentUser->isAdmin()){
+            $this->view->router->POSTredirect($this->view->router->getHomeURL(), "les administrateurs ne peuvent pas déposer d'annonces");
+            return;
+        }
+
         $builder = new AnnonceBuilder($post, isset($files['photos']) ? $files['photos'] : array());
         
         if($builder->isValid()){
@@ -153,6 +165,10 @@ class Controller{
             $this->view->router->POSTredirect($this->view->router->getLoginURL(), "Veuillez vous connecter pour acheter");
             return;
         }
+        if($this->currentUser->isAdmin()){
+            $this->view->router->POSTredirect($this->view->router->getHomeURL(), "les administrateurs ne peuvent pas déposer d'annonces");
+            return;
+        }
         
         $annonce = $this->annonceStorage->read($id);
         if(!$annonce){
@@ -207,8 +223,16 @@ class Controller{
         
         $achat->setReceived(true);
         $this->achatStorage->update($achatId, $achat);
-        
-        $this->view->router->POSTredirect($this->view->router->getUserProfileURL(), "Réception confirmée");
+
+        // supprimer l'annonce après confirmation
+        $annonceId = $achat->getAnnonceId();
+        $annonce = $this->annonceStorage->read($annonceId);
+        if($annonce){
+            $this->deletePhotos($annonce->getPhotos());
+            $this->annonceStorage->delete($annonceId);
+        }
+
+        $this->view->router->POSTredirect($this->view->router->getUserProfileURL(), "Réception confirmée et annonce supprimée");
     }
 
 }

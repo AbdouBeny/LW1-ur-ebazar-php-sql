@@ -11,7 +11,7 @@ class Router{
             session_start();
         }
 
-        // Feedback en session
+        // Feedback 
         $feedback = null;
         if (isset($_SESSION['feedback'])){
             $feedback = $_SESSION['feedback'];

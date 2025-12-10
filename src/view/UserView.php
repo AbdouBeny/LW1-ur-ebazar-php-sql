@@ -56,18 +56,36 @@ class UserView {
         return $html;
     }
     
-    public function renderCategoryPage($category, $annonces){
+    public function renderCategoryPage($category, $annonces, $currentPage = 1, $totalPages = 1){
         $html = "<div class='category-page'>";
-        $html .= "<h2>Annonces :</h2>";
         
-        if (empty($annonces)) {
-            $html .= "<p class='no-results'>Aucune annonce dans cette catégorie.</p>";
-        } else {
+        if(empty($annonces)){
+            $html .= "<p class='no-results'>aucune annonce dans cette catégorie</p>";
+        }else{
             $html .= "<div class='annonces-list'>";
             foreach ($annonces as $id => $a) {
                 $html .= $this->renderAnnonceRow($a, $id);
             }
             $html .= "</div>";
+            
+            // pagination
+            if($totalPages > 1){
+                $html .= "<div class='pagination'>";
+                if ($currentPage > 1) {
+                    $html .= "<a href='?action=liste&category=" . urlencode($category->getId()) . "&page=" . ($currentPage-1) . "' class='page-link'>Précédent</a> ";
+                }
+                for ($i = 1; $i <= $totalPages; $i++) {
+                    if ($i == $currentPage) {
+                        $html .= "<span class='current-page'>$i</span> ";
+                    } else {
+                        $html .= "<a href='?action=liste&category=" . urlencode($category->getId()) . "&page=$i' class='page-link'>$i</a> ";
+                    }
+                }
+                if ($currentPage < $totalPages) {
+                    $html .= "<a href='?action=liste&category=" . urlencode($category->getId()) . "&page=" . ($currentPage+1) . "' class='page-link'>Suivant</a>";
+                }
+                $html .= "</div>";
+            }
         }
         
         $html .= "</div>";
@@ -278,52 +296,59 @@ class UserView {
         $html .= "<p><strong>Membre depuis :</strong> " . $user->getRegistrationDate()->format('d/m/Y') . "</p>";
         $html .= "</div>";
         
-        // Mes annonces en vente
-        $html .= "<section class='profile-section'>";
-        $html .= "<h3>Mes annonces en vente</h3>";
-        if (empty($myAnnonces)) {
-            $html .= "<p>Aucune annonce en vente.</p>";
-        } else {
-            $html .= "<div class='annonces-grid'>";
-            foreach ($myAnnonces as $id => $annonce) {
-                if (!$annonce->isSold()) {
-                    $html .= $this->renderAnnonceCard($annonce, $id, true);
+        if(!$user->isAdmin()){
+            // Mes annonces en vente
+            $html .= "<section class='profile-section'>";
+            $html .= "<h3>Mes annonces en vente</h3>";
+            if (empty($myAnnonces)) {
+                $html .= "<p>Aucune annonce en vente.</p>";
+            } else {
+                $html .= "<div class='annonces-grid'>";
+                foreach ($myAnnonces as $id => $annonce) {
+                    if (!$annonce->isSold()) {
+                        $html .= $this->renderAnnonceCard($annonce, $id, true);
+                    }
                 }
+                $html .= "</div>";
             }
+            $html .= "</section>";
+            
+            // Mes ventes
+            $html .= "<section class='profile-section'>";
+            $html .= "<h3>Mes ventes</h3>";
+            if (empty($ventes) || empty($ventesAnnonces)) {
+                $html .= "<p>Aucune vente effectuée.</p>";
+            } else {
+                $html .= "<div class='achats-list'>";
+                foreach ($ventes as $achatId => $achat) {
+                    $html .= $this->renderAnnonceCard($ventesAnnonces[$achatId], $achat->getAnnonceId(), false);
+                    $html .= $this->renderAchatRow($achat, $achatId, false);
+                }
+                $html .= "</div>";
+            }
+            $html .= "</section>";
+            
+            // Mes achats
+            $html .= "<section class='profile-section'>";
+            $html .= "<h3>Mes achats</h3>";
+            if (empty($achats)) {
+                $html .= "<p>Aucun achat effectué.</p>";
+            } else {
+                $html .= "<div class='achats-list'>";
+                foreach ($achats as $achatId => $achat) {
+                    $html .= $this->renderAnnonceCard($achatsAnnonces[$achatId], $achat->getAnnonceId(), false);
+                    $html .= $this->renderAchatRow($achat, $achatId, true);
+                }
+                $html .= "</div>";
+            }
+            $html .= "</section>";
+            
+        }else{
+            $html .= "<div class='admin-notice'>";
+            $html .= "<p>En tant qu'administrateur, vous ne pouvez pas créer d'annonces ni effectuer d'achats</p>";
+            $html .= "<p>utiliser le menu <strong>Administration</strong> pour gérer la plateform";
             $html .= "</div>";
         }
-        $html .= "</section>";
-        
-        // Mes ventes
-        $html .= "<section class='profile-section'>";
-        $html .= "<h3>Mes ventes</h3>";
-        if (empty($ventes) || empty($ventesAnnonces)) {
-            $html .= "<p>Aucune vente effectuée.</p>";
-        } else {
-            $html .= "<div class='achats-list'>";
-            foreach ($ventes as $achatId => $achat) {
-                $html .= $this->renderAnnonceCard($ventesAnnonces[$achatId], $achat->getAnnonceId(), false);
-                $html .= $this->renderAchatRow($achat, $achatId, false);
-            }
-            $html .= "</div>";
-        }
-        $html .= "</section>";
-        
-        // Mes achats
-        $html .= "<section class='profile-section'>";
-        $html .= "<h3>Mes achats</h3>";
-        if (empty($achats)) {
-            $html .= "<p>Aucun achat effectué.</p>";
-        } else {
-            $html .= "<div class='achats-list'>";
-            foreach ($achats as $achatId => $achat) {
-                $html .= $this->renderAnnonceCard($achatsAnnonces[$achatId], $achat->getAnnonceId(), false);
-                $html .= $this->renderAchatRow($achat, $achatId, true);
-            }
-            $html .= "</div>";
-        }
-        $html .= "</section>";
-        
         $html .= "</div>";
         return $html;
     }
