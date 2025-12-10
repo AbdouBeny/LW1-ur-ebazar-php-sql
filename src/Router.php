@@ -3,12 +3,22 @@ require_once("control/Controller.php");
 require_once("control/UserController.php");
 require_once("control/AdminController.php");
 require_once("view/View.php");
+require_once("TokenCSRF.php");
 
 
 class Router{
     public function main($annonceStorage = null, $userStorage =null, $categoryStorage = null, $achatStorage = null){
         if (session_status() === PHP_SESSION_NONE){
             session_start();
+        }
+
+        // generer un token csrf si inexistant
+        if(!isset($_SESSION['csrf_token'])){
+            TokenCSRF::generate();
+        }
+        // validation csrf pour les req POST
+        if($_SERVER['REQUEST_METHOD'] === 'POST'){
+            $this->validateCSRF();
         }
 
         // Feedback 
@@ -178,6 +188,17 @@ class Router{
         header("HTTP/1.1 303 See Other");
         header("Location: " . $url);
         exit;
+    }
+
+    private function validateCSRF(){
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $token = isset($_POST['csrf_token']) ? $_POST['csrf_token'] : '';
+            
+            if(!TokenCSRF::validate($token)){
+                $this->POSTredirect($this->getHomeURL(), "Erreur de sécurité. Veuillez réessayer.");
+                exit;
+            }
+        }
     }
 
     

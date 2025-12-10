@@ -1,5 +1,5 @@
 <?php
-
+require_once("TokenCSRF.php");
 
 class AdminView{
     protected $router;
@@ -23,6 +23,7 @@ class AdminView{
         $html .= "<div class='admin-form'>";
         $html .= "<h3>Ajouter une catégorie</h3>";
         $html .= "<form action='" . $this->router->getCategoryCreateURL() . "' method='POST'>";
+        $html .= TokenCSRF::field();
         $html .= "<input type='text' name='name' placeholder='Nom de la catégorie' required minlength='2' maxlength='50'>";
         $html .= "<button type='submit' class='btn btn-primary'>Ajouter</button>";
         $html .= "</form>";
@@ -42,6 +43,7 @@ class AdminView{
                 $html .= "<td>" . htmlspecialchars($category->getName()) . "</td>";
                 $html .= "<td class='actions'>";
                 $html .= "<form action='" . $this->router->getCategoryUpdateURL($category->getId()) . "' method='POST' class='inline-form'>";
+                $html .= TokenCSRF::field();
                 $html .= "<input type='text' name='name' value='" . htmlspecialchars($category->getName()) . "' required>";
                 $html .= "<button type='submit' class='btn btn-small'>Renommer</button>";
                 $html .= "</form>";

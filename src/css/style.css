@@ -576,3 +576,7 @@ header {
     margin-bottom: 1rem;
     color: #333;
 }
+.thumbnail.active {
+    border: 2px solid #007bff;
+    opacity: 1;
+}

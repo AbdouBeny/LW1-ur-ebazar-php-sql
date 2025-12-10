@@ -1,5 +1,5 @@
 <?php
-
+require_once("TokenCSRF.php");
 
 class UserView {
     protected $router;
@@ -100,13 +100,18 @@ class UserView {
         $photos = $annonce->getPhotos();
         if (!empty($photos)) {
             $html .= "<div class='main-photo'>";
-            $html .= "<img src='uploads/annonces/" . htmlspecialchars($photos[0]) . "' alt='" . htmlspecialchars($annonce->getTitle()) . "'>";
+            $html .= "<img src='uploads/annonces/" . htmlspecialchars($photos[0]) . "' alt='" . htmlspecialchars($annonce->getTitle()) . "' id='mainPhoto'>";
             $html .= "</div>";
             
-            if (count($photos) > 1) {
+            if (count($photos) > 1){
                 $html .= "<div class='thumbnails'>";
                 foreach ($photos as $index => $photo) {
-                    $html .= "<img src='uploads/annonces/" . htmlspecialchars($photo) . "' alt='Photo " . ($index + 1) . "' class='thumbnail'>";
+                    $active = $index === 0 ? 'active' : '';
+                    $html .= "<img src='uploads/annonces/" . htmlspecialchars($photo) . "' 
+                            alt='Photo " . ($index + 1) . "' 
+                            class='thumbnail $active'
+                            data-index='" . $index . "'
+                            onclick='changeMainPhoto(this, \"" . htmlspecialchars($photo) . "\")'>";
                 }
                 $html .= "</div>";
             }
@@ -162,6 +167,21 @@ class UserView {
         $html .= "</div>";
         $html .= "</div>";
         
+        $html .= "
+        <script>
+        function changeMainPhoto(thumbnail, photoSrc){
+            const mainPhoto = document.getElementById('mainPhoto');
+            if (mainPhoto){
+                // on change la source de la photo principale
+                mainPhoto.src = 'uploads/annonces/' + photoSrc;
+                
+                document.querySelectorAll('.thumbnail').forEach(thumb => {
+                    thumb.classList.remove('active');
+                });
+                thumbnail.classList.add('active');
+            }
+        }
+        </script>";
         return $html;
     }
     
@@ -174,7 +194,7 @@ class UserView {
         if($error){
             $html .= "<div class='form-error'>" . htmlspecialchars($error) . "</div>";
         }
-        
+        $html .= TokenCSRF::field();
         // titre
         $html .= "<div class='form-group'>";
         $html .= "<label for='title'>Titre *</label>";
@@ -237,7 +257,7 @@ class UserView {
         if($error){
             $html .= "<div class='form-error'>" . htmlspecialchars($error) . "</div>";
         }
-        
+        $html .= TokenCSRF::field();
         $html .= "<div class='form-group'>";
         $html .= "<label for='email'>Email</label>";
         $html .= "<input type='email' id='email' name='email' value='" . htmlspecialchars($data['email'] ?? '') . "' required>";
@@ -263,7 +283,7 @@ class UserView {
         if ($error){
             $html .= "<div class='form-error'>" . htmlspecialchars($error) . "</div>";
         }
-        
+        $html .= TokenCSRF::field();
         $html .= "<div class='form-group'>";
         $html .= "<label for='email'>Email</label>";
         $html .= "<input type='email' id='email' name='email' value='" . htmlspecialchars($data['email'] ?? '') . "' required>";
@@ -371,6 +391,7 @@ class UserView {
         
         if ($showDelete && !$annonce->isSold()) {
             $html .= "<form action='" . $this->router->getAnnonceDeleteURL($id) . "' method='POST' class='delete-form'>";
+            $html .= TokenCSRF::field();
             $html .= "<button type='submit' class='btn btn-danger btn-small' onclick=\"return confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?')\">Supprimer</button>";
             $html .= "</form>";
         }
@@ -412,6 +433,7 @@ class UserView {
             
             if (!$achat->isReceived()) {
                 $html .= "<form action='" . $this->router->getConfirmReceptionURL($achatId) . "' method='POST'>";
+                $html .= TokenCSRF::field();
                 $html .= "<button type='submit' class='btn btn-success btn-small' onclick=\"return confirm('Confirmez-vous la réception de cet article ?')\">Confirmer la réception</button>";
                 $html .= "</form>";
             }
