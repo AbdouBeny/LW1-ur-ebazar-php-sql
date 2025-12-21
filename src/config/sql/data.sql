@@ -1,4 +1,4 @@
-USE projet;
+-- USE projet;
 
 -- insertion des catégories par défaut
 INSERT INTO categories (id, name) VALUES

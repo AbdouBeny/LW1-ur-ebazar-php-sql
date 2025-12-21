@@ -119,7 +119,6 @@ class AnnonceBuilder{
                         $this->error = "Les photos doivent être au format JPEG/JPG.";
                         return false;
                     }
-                    chmod('uploads/annonces/', 0777);
                     $filename = uniqid() . '.jpg';
                     move_uploaded_file($this->photos['tmp_name'][$i], 'uploads/annonces/' . $filename);
                     $this->uploadedPhotos[] = $filename;
