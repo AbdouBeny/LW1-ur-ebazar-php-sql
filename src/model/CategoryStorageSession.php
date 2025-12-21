@@ -2,7 +2,11 @@
 require_once("CategoryStorage.php");
 require_once("Category.php");
 
-
+/**
+ * Cette classe utilise la session PHP comme système de stockage temporaire pour les annonces.
+ * Elle est principalement destinée aux tests
+ * elle est actuellement désactivée dans site.php
+ */
 class CategoryStorageSession implements CategoryStorage{
     protected $key = 'categories';
     

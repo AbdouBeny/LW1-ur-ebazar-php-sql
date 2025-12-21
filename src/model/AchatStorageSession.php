@@ -2,7 +2,11 @@
 require_once("AchatStorage.php");
 require_once("Achat.php");
 
-
+/**
+ * Cette classe utilise la session PHP comme système de stockage temporaire pour les annonces.
+ * Elle est principalement destinée aux tests
+ * elle est actuellement désactivée dans site.php
+ */
 class AchatStorageSession implements AchatStorage{
     protected $key = 'achats';
     

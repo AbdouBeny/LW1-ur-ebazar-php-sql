@@ -2,7 +2,11 @@
 require_once("AnnonceStorage.php");
 require_once("Annonce.php");
 
-
+/**
+ * Cette classe utilise la session PHP comme système de stockage temporaire pour les annonces.
+ * Elle est principalement destinée aux tests
+ * elle est actuellement désactivée dans site.php
+ */
 class AnnonceStorageSession implements AnnonceStorage{
     protected $key = 'annonces';
     
@@ -94,7 +98,7 @@ class AnnonceStorageSession implements AnnonceStorage{
                 $out[$id] = $this->arrayToAnnonce($arr);
             }
         }
-        return $out;
+        return array_reverse($out, true);
     }
     
     public function readBySeller($email){

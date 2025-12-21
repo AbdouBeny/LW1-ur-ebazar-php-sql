@@ -5,6 +5,8 @@ PRENOM: abderezak
 
 Déploiement du projet
 
+Avant toute chose : Déplacez le dossier "annonces" dans le répertoire du serveur web 
+
 1. MÉTHODE AUTOMATIQUE (via le script install.sh)
 étapes :
 * Ouvrez un terminal à la racine du projet.

@@ -33,7 +33,7 @@ class Controller{
         $annonces = $this->annonceStorage->readAllNotSold();
         
         // récupérer les 4 dernieres annonces
-        $last = array_slice($annonces, -4, 4, true);
+        $last = array_slice($annonces, 0, 4, true);
         $countAnnoncesCat = [];
         if(!empty($categories)){
             foreach($categories as $category){

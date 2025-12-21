@@ -2,7 +2,11 @@
 require_once("UserStorage.php");
 require_once("User.php");
 
-
+/**
+ * Cette classe utilise la session PHP comme système de stockage temporaire pour les annonces.
+ * Elle est principalement destinée aux tests
+ * elle est actuellement désactivée dans site.php
+ */
 class UserStorageSession implements UserStorage{
     protected $key = 'users';
     
