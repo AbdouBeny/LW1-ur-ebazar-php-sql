@@ -39,7 +39,7 @@ if [ -f "src/config/config.php" ]; then
     sed -i "s/define('DB_NAME', '.*');/define('DB_NAME', '$DB_NAME');/g" src/config/config.php
     sed -i "s/define('DB_USER', '.*');/define('DB_USER', '$DB_USER');/g" src/config/config.php
     sed -i "s/define('DB_PASS', '.*');/define('DB_PASS', '$DB_PASS');/g" src/config/config.php
-    echo "✓ Fichier config.php mis à jour"
+    echo "Fichier config.php mis à jour"
 else
     echo "ERREUR: Fichier src/config/config.php non trouvé"
     exit 1

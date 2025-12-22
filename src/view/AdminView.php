@@ -51,6 +51,7 @@ class AdminView{
                 $html .= "<button type='submit' class='btn btn-small'>Renommer</button>";
                 $html .= "</form>";
                 $html .= "<form action='" . $this->router->getCategoryDeleteURL($category->getId()) . "' method='POST' class='inline-form'>";
+                $html .= TokenCSRF::field();
                 $html .= "<button type='submit' class='btn btn-danger btn-small' onclick=\"return confirm('Êtes-vous sûr de vouloir supprimer cette catégorie ?')\">Supprimer</button>";
                 $html .= "</form>";
                 $html .= "</td>";
@@ -81,6 +82,7 @@ class AdminView{
                 $html .= "<td class='actions'>";
                 $html .= "<a href='" . $this->router->getAnnonceURL($id) . "' class='btn btn-small'>Voir</a>";
                 $html .= "<form action='" . $this->router->getAnnonceDeleteURL($id) . "' method='POST' class='inline-form'>";
+                $html .= TokenCSRF::field();
                 $html .= "<button type='submit' class='btn btn-danger btn-small' onclick=\"return confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?')\">Supprimer</button>";
                 $html .= "</form>";
                 $html .= "</td>";
@@ -109,6 +111,7 @@ class AdminView{
                 $html .= "<td class='actions'>";
                 if ($user->getRole() !== 'admin') {
                     $html .= "<form action='" . $this->router->getUserDeleteURL($email) . "' method='POST' class='inline-form'>";
+                    $html .= TokenCSRF::field();
                     $html .= "<button type='submit' class='btn btn-danger btn-small' onclick=\"return confirm('Êtes-vous sûr de vouloir supprimer cet utilisateur et toutes ses annonces ?')\">Supprimer</button>";
                     $html .= "</form>";
                 } else {
